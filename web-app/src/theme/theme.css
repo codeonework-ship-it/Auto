@@ -1,0 +1,200 @@
+/*
+ * AutoHub design-system theme.
+ * Automotive-inspired palette: deep asphalt/graphite base, signal-orange accent,
+ * electric-blue secondary. Light + dark via [data-bs-theme].
+ * These CSS variables layer on top of Bootstrap 5 (which reads --bs-* tokens).
+ */
+
+:root,
+[data-bs-theme='light'] {
+  /* Brand palette */
+  --ah-orange: #ff6a00; /* signal orange — primary accent */
+  --ah-orange-600: #e85f00;
+  --ah-blue: #1e6fff; /* electric blue — secondary */
+  --ah-graphite: #1b1f24; /* asphalt */
+  --ah-steel: #6b7280;
+  --ah-silver: #e6e8eb;
+
+  /* Semantic surfaces (light) */
+  --ah-bg: #f6f7f9;
+  --ah-surface: #ffffff;
+  --ah-surface-alt: #f0f2f5;
+  --ah-border: #e2e5e9;
+  --ah-text: #1b1f24;
+  --ah-text-muted: #5b636e;
+
+  /* Map Bootstrap primary/secondary to brand */
+  --bs-primary: var(--ah-orange);
+  --bs-primary-rgb: 255, 106, 0;
+  --bs-secondary: var(--ah-blue);
+  --bs-body-bg: var(--ah-bg);
+  --bs-body-color: var(--ah-text);
+  --bs-border-color: var(--ah-border);
+
+  --ah-radius: 0.75rem;
+  --ah-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --ah-shadow-md: 0 6px 18px rgba(16, 24, 40, 0.10);
+}
+
+[data-bs-theme='dark'] {
+  --ah-orange: #ff7a1a;
+  --ah-orange-600: #ff6a00;
+  --ah-blue: #4f8cff;
+  --ah-graphite: #0d0f12;
+  --ah-steel: #9aa3af;
+  --ah-silver: #2a2f36;
+
+  --ah-bg: #0d0f12;
+  --ah-surface: #171a1f;
+  --ah-surface-alt: #1f242b;
+  --ah-border: #2a2f36;
+  --ah-text: #e8eaed;
+  --ah-text-muted: #9aa3af;
+
+  --bs-primary: var(--ah-orange);
+  --bs-primary-rgb: 255, 122, 26;
+  --bs-secondary: var(--ah-blue);
+  --bs-body-bg: var(--ah-bg);
+  --bs-body-color: var(--ah-text);
+  --bs-border-color: var(--ah-border);
+}
+
+/* Base */
+body {
+  background-color: var(--ah-bg);
+  color: var(--ah-text);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ah-blue);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ah-orange);
+}
+
+/* Brand button override */
+.btn-primary {
+  --bs-btn-bg: var(--ah-orange);
+  --bs-btn-border-color: var(--ah-orange);
+  --bs-btn-hover-bg: var(--ah-orange-600);
+  --bs-btn-hover-border-color: var(--ah-orange-600);
+  --bs-btn-active-bg: var(--ah-orange-600);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--ah-orange);
+  --bs-btn-border-color: var(--ah-orange);
+  --bs-btn-hover-bg: var(--ah-orange);
+  --bs-btn-hover-border-color: var(--ah-orange);
+}
+
+/* Surface card */
+.ah-card {
+  background: var(--ah-surface);
+  border: 1px solid var(--ah-border);
+  border-radius: var(--ah-radius);
+  box-shadow: var(--ah-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.ah-card:hover {
+  box-shadow: var(--ah-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Navbar */
+.ah-navbar {
+  background: var(--ah-surface);
+  border-bottom: 1px solid var(--ah-border);
+  backdrop-filter: saturate(1.2);
+}
+.ah-brand {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ah-brand span {
+  color: var(--ah-orange);
+}
+
+/* Hero gradient */
+.ah-hero {
+  background: linear-gradient(135deg, var(--ah-graphite) 0%, #2a2f36 60%, var(--ah-orange-600) 140%);
+  color: #fff;
+  border-radius: var(--ah-radius);
+}
+
+/* Muted text helper */
+.ah-muted {
+  color: var(--ah-text-muted) !important;
+}
+
+/* Footer */
+.ah-footer {
+  background: var(--ah-surface);
+  border-top: 1px solid var(--ah-border);
+  color: var(--ah-text-muted);
+}
+
+/* Pillar icon tile */
+.ah-pillar-icon {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 106, 0, 0.12);
+  color: var(--ah-orange);
+  font-size: 1.6rem;
+}
+
+/* Image uploader dropzone */
+.ah-dropzone {
+  border: 2px dashed var(--ah-border);
+  border-radius: var(--ah-radius);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  background: var(--ah-surface-alt);
+}
+.ah-dropzone.is-dragging {
+  border-color: var(--ah-orange);
+  background: rgba(255, 106, 0, 0.06);
+}
+.ah-thumb {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--ah-border);
+  aspect-ratio: 4 / 3;
+  background: var(--ah-surface-alt);
+}
+.ah-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ah-thumb .ah-thumb-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+.ah-thumb.is-invalid {
+  border-color: var(--bs-danger, #dc3545);
+}
+
+/* Rich text editor container */
+.ah-editor .ql-container {
+  min-height: 220px;
+  border-bottom-left-radius: var(--ah-radius);
+  border-bottom-right-radius: var(--ah-radius);
+}
+.ah-editor .ql-toolbar {
+  border-top-left-radius: var(--ah-radius);
+  border-top-right-radius: var(--ah-radius);
+}

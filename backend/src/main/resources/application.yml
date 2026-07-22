@@ -1,0 +1,69 @@
+# ============================================================================
+# AutoHub backend — base configuration (shared across profiles)
+# Profile-specific overrides live in application-<profile>.yml
+# ============================================================================
+spring:
+  application:
+    name: autohub-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/AutomobilesDB_Dev}
+    username: ${SPRING_DATASOURCE_USERNAME:automobiles}
+    password: ${SPRING_DATASOURCE_PASSWORD:Automobiles_DB@12345}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate          # schema is owned by Flyway, never Hibernate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: autohub-backend
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+autohub:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-in-prod-this-is-a-dev-only-256bit-secret-key-0123456789}
+      access-token-ttl-minutes: ${JWT_ACCESS_TTL_MIN:30}
+      refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
+  events:
+    kafka-enabled: ${EVENTS_KAFKA_ENABLED:true}
+    outbox-relay-fixed-delay-ms: 5000
+  media:
+    max-images-per-post: 20
+    max-image-size-bytes: 5242880        # 5 MB
+    allowed-content-types: image/jpeg,image/png,image/webp
+    min-width: 640
+    min-height: 480

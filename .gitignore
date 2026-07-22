@@ -1,0 +1,26 @@
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+*.log
+
+# ---- Java / Maven ----
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# ---- Node / React ----
+node_modules/
+dist/
+.vite/
+*.local
+
+# ---- Env / secrets ----
+.env
+!.env.example
+*.pem
+
+# ---- Docker ----
+docker-data/

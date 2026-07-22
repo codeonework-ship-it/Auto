@@ -1,0 +1,333 @@
+/* ==========================================================================
+   AutoHub Control Panel — admin theme
+   Light + dark via CSS variables. Denser data-table styling for back-office.
+   ========================================================================== */
+
+:root {
+  /* Brand */
+  --ah-primary: #1f6feb;
+  --ah-primary-hover: #1a5fd0;
+  --ah-accent: #f59e0b;
+  --ah-success: #16a34a;
+  --ah-warning: #d97706;
+  --ah-danger: #dc2626;
+  --ah-info: #0891b2;
+
+  /* Surfaces (light) */
+  --ah-bg: #f4f6fa;
+  --ah-surface: #ffffff;
+  --ah-surface-2: #f8fafc;
+  --ah-border: #e2e8f0;
+  --ah-text: #1e293b;
+  --ah-text-muted: #64748b;
+
+  /* Sidebar */
+  --ah-sidebar-bg: #0f172a;
+  --ah-sidebar-text: #cbd5e1;
+  --ah-sidebar-text-active: #ffffff;
+  --ah-sidebar-active: #1f6feb;
+  --ah-sidebar-hover: rgba(255, 255, 255, 0.08);
+
+  /* Layout */
+  --ah-sidebar-width: 248px;
+  --ah-topbar-height: 60px;
+  --ah-radius: 10px;
+  --ah-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme='dark'] {
+  --ah-bg: #0b1120;
+  --ah-surface: #131c31;
+  --ah-surface-2: #0f1627;
+  --ah-border: #24304a;
+  --ah-text: #e2e8f0;
+  --ah-text-muted: #94a3b8;
+
+  --ah-sidebar-bg: #070c17;
+  --ah-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --ah-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Base ---------- */
+body {
+  margin: 0;
+  background: var(--ah-bg);
+  color: var(--ah-text);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+a {
+  color: var(--ah-primary);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ah-primary-hover);
+}
+
+/* ---------- App shell ---------- */
+.ah-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.ah-sidebar {
+  width: var(--ah-sidebar-width);
+  background: var(--ah-sidebar-bg);
+  color: var(--ah-sidebar-text);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 1030;
+  transition: transform 0.2s ease;
+}
+
+.ah-sidebar__brand {
+  height: var(--ah-topbar-height);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1.1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ah-sidebar__nav {
+  padding: 0.6rem 0.5rem;
+  flex: 1;
+}
+
+.ah-sidebar__section {
+  padding: 0.9rem 0.75rem 0.3rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.ah-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  margin: 0.1rem 0;
+  border-radius: 8px;
+  color: var(--ah-sidebar-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.ah-nav-link:hover {
+  background: var(--ah-sidebar-hover);
+  color: var(--ah-sidebar-text-active);
+}
+.ah-nav-link.active {
+  background: var(--ah-sidebar-active);
+  color: #fff;
+  font-weight: 600;
+}
+.ah-nav-link svg {
+  flex-shrink: 0;
+  font-size: 1.05rem;
+}
+
+/* ---------- Main column ---------- */
+.ah-main {
+  flex: 1;
+  margin-left: var(--ah-sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ah-topbar {
+  height: var(--ah-topbar-height);
+  background: var(--ah-surface);
+  border-bottom: 1px solid var(--ah-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.ah-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* ---------- Cards / surfaces ---------- */
+.ah-card {
+  background: var(--ah-surface);
+  border: 1px solid var(--ah-border);
+  border-radius: var(--ah-radius);
+  box-shadow: var(--ah-shadow);
+}
+
+.ah-kpi {
+  padding: 1.1rem 1.2rem;
+}
+.ah-kpi__label {
+  color: var(--ah-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ah-kpi__value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.2rem;
+}
+.ah-kpi__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+/* ---------- Page header ---------- */
+.ah-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.ah-page-header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+.ah-page-header p {
+  color: var(--ah-text-muted);
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+}
+
+/* ---------- Dense data table ---------- */
+.ah-table-wrap {
+  background: var(--ah-surface);
+  border: 1px solid var(--ah-border);
+  border-radius: var(--ah-radius);
+  overflow: hidden;
+}
+.ah-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ah-border);
+  flex-wrap: wrap;
+}
+.ah-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.ah-table th,
+.ah-table td {
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--ah-border);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.ah-table thead th {
+  background: var(--ah-surface-2);
+  color: var(--ah-text-muted);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+.ah-table thead th.sortable {
+  cursor: pointer;
+}
+.ah-table thead th.sortable:hover {
+  color: var(--ah-text);
+}
+.ah-table tbody tr:hover {
+  background: var(--ah-surface-2);
+}
+.ah-table__empty {
+  text-align: center;
+  color: var(--ah-text-muted);
+  padding: 2rem 1rem;
+}
+.ah-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--ah-border);
+  color: var(--ah-text-muted);
+  font-size: 0.82rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- Status badges ---------- */
+.ah-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.ah-badge--success { background: rgba(22, 163, 74, 0.14); color: var(--ah-success); }
+.ah-badge--warning { background: rgba(217, 119, 6, 0.14); color: var(--ah-warning); }
+.ah-badge--danger  { background: rgba(220, 38, 38, 0.14); color: var(--ah-danger); }
+.ah-badge--info    { background: rgba(8, 145, 178, 0.14); color: var(--ah-info); }
+.ah-badge--muted   { background: rgba(100, 116, 139, 0.16); color: var(--ah-text-muted); }
+
+/* ---------- Login ---------- */
+.ah-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1f6feb 140%);
+  padding: 1rem;
+}
+.ah-login__card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--ah-surface);
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Utilities ---------- */
+.ah-muted { color: var(--ah-text-muted); }
+.ah-clickable { cursor: pointer; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 992px) {
+  .ah-sidebar {
+    transform: translateX(-100%);
+  }
+  .ah-sidebar.open {
+    transform: translateX(0);
+  }
+  .ah-main {
+    margin-left: 0;
+  }
+}

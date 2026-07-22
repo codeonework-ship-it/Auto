@@ -1,0 +1,10 @@
+# Dev profile — verbose logging, SQL echo. Targets AutomobilesDB_Dev.
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+logging:
+  level:
+    com.autohub: DEBUG
+    org.hibernate.SQL: DEBUG
