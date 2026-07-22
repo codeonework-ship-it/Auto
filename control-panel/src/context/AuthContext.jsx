@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     authApi
       .me()
       .then((data) => {
-        setUser(data?.user ?? data ?? null);
+        setUser(data ?? null);
         setRoles(data?.roles ?? []);
         setPermissions(data?.permissions ?? []);
       })
@@ -34,11 +34,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => {
-    const data = await authApi.login(credentials);
-    setUser(data?.user ?? null);
-    setRoles(data?.roles ?? []);
-    setPermissions(data?.permissions ?? []);
-    return data;
+    await authApi.login(credentials); // stores the JWT
+    const me = await authApi.me();    // profile incl. roles + permissions
+    setUser(me ?? null);
+    setRoles(me?.roles ?? []);
+    setPermissions(me?.permissions ?? []);
+    return me;
   }, []);
 
   const logout = useCallback(async () => {

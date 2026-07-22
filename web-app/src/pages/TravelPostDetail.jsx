@@ -4,32 +4,30 @@ import { Container } from 'react-bootstrap';
 import travelApi from '../api/travel';
 import Loader from '../components/common/Loader';
 
-// Travel post detail page.
+// Travel post detail page. The :id route param carries the post slug.
 export default function TravelPostDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();
   const [post, setPost] = useState(null);
 
   useEffect(() => {
     let active = true;
     travelApi
-      .getPost(id)
+      .getPost(slug)
       .then((data) => active && setPost(data))
-      .catch(
-        () =>
-          active &&
-          setPost({
-            id,
-            title: 'Sample travel post',
-            author: 'demo_traveler',
-            cover: 'https://placehold.co/1280x720?text=Travel',
-            bodyHtml:
-              '<p>Placeholder travel content. Connect the backend to load the real story.</p>',
-          }),
-      );
+      .catch(() => active && setPost(false));
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [slug]);
+
+  if (post === false) {
+    return (
+      <Container className="py-5 text-center">
+        <h3 className="fw-bold">Travel post not found</h3>
+        <Link to="/travel" className="fw-semibold">← Back to travel blog</Link>
+      </Container>
+    );
+  }
 
   if (!post) return <Loader label="Loading…" />;
 
@@ -37,8 +35,10 @@ export default function TravelPostDetail() {
     <Container className="py-4" style={{ maxWidth: 820 }}>
       <Link to="/travel" className="small">← Back to travel blog</Link>
       <h1 className="fw-bold mt-2">{post.title}</h1>
-      <p className="ah-muted">by {post.author}</p>
-      {post.cover && <img src={post.cover} alt={post.title} className="img-fluid rounded mb-3" />}
+      {post.location && <p className="ah-muted">📍 {post.location}</p>}
+      {post.publishedAt && (
+        <p className="ah-muted small">Published {new Date(post.publishedAt).toLocaleDateString()}</p>
+      )}
       {/* Server-sanitized HTML body. */}
       <div dangerouslySetInnerHTML={{ __html: post.bodyHtml || '' }} />
     </Container>

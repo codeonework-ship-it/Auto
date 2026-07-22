@@ -1,40 +1,57 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import travelApi from '../api/travel';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
-
-const PLACEHOLDER_POSTS = [
-  {
-    id: 201,
-    title: 'Riding the Leh–Manali highway: a 5-day guide',
-    author: 'wander_riya',
-    cover: 'https://placehold.co/640x480?text=Leh-Manali',
-    excerpt: 'Passes, permits, fuel stops, and where to stay along the way.',
-  },
-  {
-    id: 202,
-    title: 'Coastal road trip: Mumbai to Goa by car',
-    author: 'coastal_dev',
-    cover: 'https://placehold.co/640x480?text=Mumbai-Goa',
-    excerpt: 'The best detours, beaches, and seafood shacks on NH66.',
-  },
-];
+import { useAuth } from '../context/AuthContext';
 
 export default function TravelBlog() {
+  const { isAuthenticated } = useAuth();
   const [posts, setPosts] = useState(null);
+  const [title, setTitle] = useState('');
+  const [location, setLocation] = useState('');
+  const [body, setBody] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
-    travelApi
-      .listPosts()
-      .then((data) => active && setPosts(Array.isArray(data) ? data : data?.items || []))
-      .catch(() => active && setPosts(PLACEHOLDER_POSTS));
+    load(() => active);
     return () => {
       active = false;
     };
   }, []);
+
+  function load(isActive = () => true) {
+    return travelApi
+      .listPosts()
+      .then((data) => isActive() && setPosts(Array.isArray(data) ? data : []))
+      .catch(() => isActive() && setPosts([]));
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    setError('');
+    setSaving(true);
+    try {
+      // Body is a plain textarea; wrap paragraphs so the server-side sanitizer keeps structure.
+      const bodyHtml = body
+        .split(/\n{2,}/)
+        .map((p) => `<p>${p.trim()}</p>`)
+        .join('');
+      const created = await travelApi.createPost({ title, location, bodyHtml });
+      await travelApi.publishPost(created.id);
+      setTitle('');
+      setLocation('');
+      setBody('');
+      await load();
+    } catch (err) {
+      setError(err?.message || 'Failed to publish travel post.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (posts === null) return <Loader label="Loading travel posts…" />;
 
@@ -43,28 +60,65 @@ export default function TravelBlog() {
       <h2 className="fw-bold mb-0">Travel Blog</h2>
       <p className="ah-muted">Road trips, routes, and ride reports from the community.</p>
 
+      {isAuthenticated && (
+        <Card className="ah-card border-0 mb-4">
+          <Card.Body>
+            <h5 className="fw-bold">Write a travel post</h5>
+            {error && <Alert variant="danger" className="small">{error}</Alert>}
+            <Form onSubmit={submit}>
+              <Form.Group className="mb-2">
+                <Form.Label className="small mb-1">Title</Form.Label>
+                <Form.Control
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Riding the Leh–Manali highway"
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label className="small mb-1">Location</Form.Label>
+                <Form.Control
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Ladakh, India"
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label className="small mb-1">Your story</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={5}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Share the route, stops, and tips…"
+                  required
+                />
+              </Form.Group>
+              <Button type="submit" variant="primary" disabled={saving}>
+                {saving ? 'Publishing…' : 'Publish post'}
+              </Button>
+            </Form>
+          </Card.Body>
+        </Card>
+      )}
+
       {posts.length === 0 ? (
         <EmptyState title="No travel posts yet" message="Check back soon for road-trip stories." />
       ) : (
         <Row className="g-4">
           {posts.map((p) => (
             <Col md={6} key={p.id}>
-              <Card className="ah-card h-100 border-0 overflow-hidden">
-                <Row className="g-0">
-                  <Col xs={5}>
-                    <img src={p.cover} alt={p.title} className="w-100 h-100" style={{ objectFit: 'cover' }} />
-                  </Col>
-                  <Col xs={7}>
-                    <Card.Body>
-                      <Card.Title className="fs-6 fw-bold">{p.title}</Card.Title>
-                      <Card.Text className="ah-muted small">{p.excerpt}</Card.Text>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <span className="ah-muted small">by {p.author}</span>
-                        <Link to={`/travel/${p.id}`} className="fw-semibold small">Read →</Link>
-                      </div>
-                    </Card.Body>
-                  </Col>
-                </Row>
+              <Card className="ah-card h-100 border-0">
+                <Card.Body className="d-flex flex-column">
+                  <Card.Title className="fs-6 fw-bold">{p.title}</Card.Title>
+                  {p.location && <div className="ah-muted small mb-2">📍 {p.location}</div>}
+                  <div className="d-flex justify-content-between align-items-center mt-auto">
+                    <span className="ah-muted small">
+                      {p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : ''}
+                    </span>
+                    <Link to={`/travel/${p.slug}`} className="fw-semibold small">Read →</Link>
+                  </div>
+                </Card.Body>
               </Card>
             </Col>
           ))}

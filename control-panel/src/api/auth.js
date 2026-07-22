@@ -1,26 +1,24 @@
 import client, { TOKEN_KEY } from './client';
 
 // Auth service — talks to the identity bounded context.
+// Backend wraps responses as { success, data, timestamp }; we unwrap `.data.data`.
+//   login -> { accessToken, refreshToken, tokenType, expiresIn }
+//   me    -> { id, email, username, displayName, status, roles, permissions }
+const unwrap = (r) => r.data?.data ?? r.data;
+
 export const authApi = {
-  // POST /auth/login -> { token, user, roles, permissions }
   async login(credentials) {
-    const { data } = await client.post('/auth/login', credentials);
-    if (data?.token) localStorage.setItem(TOKEN_KEY, data.token);
-    return data;
+    const tokens = await client.post('/auth/login', credentials).then(unwrap);
+    if (tokens?.accessToken) localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+    return tokens;
   },
 
   // GET /auth/me -> current admin profile with roles + permissions
-  async me() {
-    const { data } = await client.get('/auth/me');
-    return data;
-  },
+  me: () => client.get('/auth/me').then(unwrap),
 
   async logout() {
-    try {
-      await client.post('/auth/logout');
-    } finally {
-      localStorage.removeItem(TOKEN_KEY);
-    }
+    // Stateless JWT — no server endpoint; clearing the token is sufficient.
+    localStorage.removeItem(TOKEN_KEY);
   },
 };
 

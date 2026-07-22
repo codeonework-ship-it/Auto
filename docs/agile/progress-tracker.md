@@ -46,17 +46,17 @@ _Last updated: 2026-07-22_
 | S3 | US-303 | Edit / delete comment & review | engagement | ✅ Done | Owner-gated edit; owner-or-moderator delete; verified |
 | S3 | US-304 | Report content (report reasons) | moderation | ✅ Done | POST /reports (any member); subject POST/COMMENT/REVIEW/…; verified |
 | S3 | US-305 | Moderator queue + hide/remove | moderation | ✅ Done | Queue + triage (report:review) + hide review/comment + delete (comment:moderate); verified. Control-panel UI pending |
-| S4 | US-401 | Create marketplace listing | marketplace | ⚪ Todo | State machine |
-| S4 | US-402 | Buyer enquiry on listing | marketplace | ⚪ Todo | |
-| S4 | US-403 | Seller KYC submission + docs | identity (KYC) | ⚪ Todo | Gates listing |
-| S4 | US-404 | Buyer KYC submission | identity (KYC) | ⚪ Todo | |
-| S4 | US-405 | KYC review & approval | control-panel | ⚪ Todo | `kyc:review` perm |
-| S4 | US-406 | Listing approval queue | control-panel | ⚪ Todo | Emits `marketplace.listing.created` |
-| S5 | US-501 | Publish travel blog post | travel | ⚪ Todo | Rich text + images |
-| S5 | US-502 | Tour guide listing + tour categories | travel | ⚪ Todo | |
-| S5 | US-503 | Create / join groups | community | ⚪ Todo | |
-| S5 | US-504 | Follow users / entities | community | ⚪ Todo | |
-| S5 | US-505 | Activity feed | community | ⚪ Todo | Perf budget |
+| S4 | US-401 | Create marketplace listing | marketplace | ✅ Done | PENDING_REVIEW→ACTIVE; emits `marketplace.listing.created`; sanitized; verified |
+| S4 | US-402 | Buyer offer on listing | marketplace | ✅ Done | `offer:create`; owner-only offer visibility (403 for others); verified |
+| S4 | US-403 | Seller KYC submission | kyc | ✅ Done | `kyc:submit`; one-per-(user,type) 409; text-only docs; verified |
+| S4 | US-404 | Buyer KYC submission | kyc | ✅ Done | Same flow, BUYER type; verified |
+| S4 | US-405 | KYC review & approval | kyc | ✅ Done | `kyc:review` queue + approve/reject; verified. Control-panel UI pending |
+| S4 | US-406 | Listing approval queue | marketplace | ✅ Done | `listing:approve` approve/reject; verified. Control-panel UI pending |
+| S5 | US-501 | Publish travel blog post | travel | 🔵 In-Progress | Create/publish/detail + sanitized body verified; per-post image gallery pending |
+| S5 | US-502 | Tour guide listing + categories | travel | ✅ Done | Tours CRUD (guide-owned); category master linkage optional; verified |
+| S5 | US-503 | Create / join groups | community | ⚪ Todo | Not started |
+| S5 | US-504 | Follow users / entities | community | ⚪ Todo | Not started |
+| S5 | US-505 | Activity feed | community | ⚪ Todo | Not started |
 
 ---
 
@@ -68,8 +68,8 @@ _Last updated: 2026-07-22_
 | S1 Identity & RBAC | 8 | 3 | 4 | 1 | 0 | ~65% |
 | S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
 | S3 Engagement & Moderation | 5 | 4 | 1 | 0 | 0 | ~90% |
-| S4 Marketplace & KYC | 6 | 0 | 0 | 6 | 0 | 0% |
-| S5 Travel & Community | 5 | 0 | 0 | 5 | 0 | 0% |
+| S4 Marketplace & KYC | 6 | 6 | 0 | 0 | 0 | 100% (control-panel UI pending) |
+| S5 Travel & Community | 5 | 1 | 1 | 3 | 0 | ~35% (Community not started) |
 | **Overall** | **38** | **8** | **0** | **30** | **0** | **~21%** |
 
 ---

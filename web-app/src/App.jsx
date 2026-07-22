@@ -17,6 +17,7 @@ import TravelPostDetail from './pages/TravelPostDetail';
 import TourGuide from './pages/TourGuide';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
+import Kyc from './pages/Kyc';
 import NotFound from './pages/NotFound';
 
 /*
@@ -62,6 +63,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Buyer/Seller KYC */}
+          <Route
+            path="/kyc"
+            element={
+              <ProtectedRoute>
+                <Kyc />
               </ProtectedRoute>
             }
           />

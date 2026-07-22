@@ -54,9 +54,14 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/h2-console/**")
                         .permitAll()
-                        // The caller's own posts (any status) require authentication —
-                        // must be listed before the public posts/** read rule.
-                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/mine").authenticated()
+                        // Owner/authenticated GET routes must be listed BEFORE the public
+                        // read rules below so they are not swallowed by the permitAll patterns.
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/posts/mine",
+                                "/api/v1/marketplace/listings/mine",
+                                "/api/v1/marketplace/listings/*/offers",
+                                "/api/v1/travel/posts/mine")
+                        .authenticated()
                         // Public reads of published content + served media
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/posts/**",
