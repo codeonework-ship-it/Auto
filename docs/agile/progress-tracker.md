@@ -41,11 +41,11 @@ _Last updated: 2026-07-22_
 | S2 | US-204 | 20-image uploader | media | ✅ Done | multipart `files`, 20-cap enforced & verified |
 | S2 | US-205 | Image validation (type/size/resolution) | media | ✅ Done | JPEG/PNG/WEBP, ≤5 MB, ≥640×480; 400s with clear messages verified |
 | S2 | US-206 | Image gallery + web wiring | web-app / media | ✅ Done | Served via `/media/**`; feed cover + detail gallery render; emits `media.image.uploaded` |
-| S3 | US-301 | Add review (rating + tags) | engagement | ⚪ Todo | 1 per user/post |
-| S3 | US-302 | Comment on post (threaded) | engagement | ⚪ Todo | |
-| S3 | US-303 | Edit / delete comment & review | engagement | ⚪ Todo | |
-| S3 | US-304 | Report content (report reasons) | engagement | ⚪ Todo | |
-| S3 | US-305 | Moderator queue + hide/remove | control-panel | ⚪ Todo | Audit trail |
+| S3 | US-301 | Add review (rating + body) | engagement | 🔵 In-Progress | 1/user/post enforced (409); sanitized; emits `engagement.review.added`; review-tag linkage pending |
+| S3 | US-302 | Comment on post (threaded) | engagement | ✅ Done | One-level threading (parentId); sanitized; verified |
+| S3 | US-303 | Edit / delete comment & review | engagement | ✅ Done | Owner-gated edit; owner-or-moderator delete; verified |
+| S3 | US-304 | Report content (report reasons) | moderation | ✅ Done | POST /reports (any member); subject POST/COMMENT/REVIEW/…; verified |
+| S3 | US-305 | Moderator queue + hide/remove | moderation | ✅ Done | Queue + triage (report:review) + hide review/comment + delete (comment:moderate); verified. Control-panel UI pending |
 | S4 | US-401 | Create marketplace listing | marketplace | ⚪ Todo | State machine |
 | S4 | US-402 | Buyer enquiry on listing | marketplace | ⚪ Todo | |
 | S4 | US-403 | Seller KYC submission + docs | identity (KYC) | ⚪ Todo | Gates listing |
@@ -67,7 +67,7 @@ _Last updated: 2026-07-22_
 | S0 Foundation | 8 | 8 | 0 | 0 | 0 | **100%** |
 | S1 Identity & RBAC | 8 | 3 | 4 | 1 | 0 | ~65% |
 | S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
-| S3 Engagement | 5 | 0 | 0 | 5 | 0 | 0% |
+| S3 Engagement & Moderation | 5 | 4 | 1 | 0 | 0 | ~90% |
 | S4 Marketplace & KYC | 6 | 0 | 0 | 6 | 0 | 0% |
 | S5 Travel & Community | 5 | 0 | 0 | 5 | 0 | 0% |
 | **Overall** | **38** | **8** | **0** | **30** | **0** | **~21%** |

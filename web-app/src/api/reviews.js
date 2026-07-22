@@ -1,18 +1,21 @@
 import client from './client';
 
 /*
- * Reviews & comments service — engagement bounded context.
- * Commenting requires an authenticated (signed-up) user.
+ * Engagement service — reviews, comments and reporting (engagement bounded context).
+ * Reads are public; writing requires an authenticated (signed-up) member.
+ * Endpoints are keyed by the post's UUID (not its slug).
  */
-export const reviewsApi = {
-  listForPost: (postId, params) =>
-    client.get(`/posts/${postId}/reviews`, { params }).then((r) => r.data),
-  addReview: (postId, payload) =>
-    client.post(`/posts/${postId}/reviews`, payload).then((r) => r.data),
-  addComment: (reviewId, payload) =>
-    client.post(`/reviews/${reviewId}/comments`, payload).then((r) => r.data),
-  report: (reviewId, payload) =>
-    client.post(`/reviews/${reviewId}/report`, payload).then((r) => r.data),
+const unwrap = (r) => r.data?.data ?? r.data;
+
+export const engagementApi = {
+  listReviews: (postId) => client.get(`/posts/${postId}/reviews`).then(unwrap),
+  addReview: (postId, payload) => client.post(`/posts/${postId}/reviews`, payload).then(unwrap),
+  listComments: (postId) => client.get(`/posts/${postId}/comments`).then(unwrap),
+  addComment: (postId, payload) => client.post(`/posts/${postId}/comments`, payload).then(unwrap),
+  // payload: { subjectType: 'REVIEW'|'COMMENT'|'POST'..., subjectId, reasonId?, details? }
+  report: (payload) => client.post('/reports', payload).then(unwrap),
 };
 
-export default reviewsApi;
+// Backwards-compatible alias
+export const reviewsApi = engagementApi;
+export default engagementApi;

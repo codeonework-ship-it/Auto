@@ -3,32 +3,69 @@ import { Link, useParams } from 'react-router-dom';
 import { Container, Row, Col, Badge, Card, Button, Alert, Form } from 'react-bootstrap';
 import postsApi from '../api/posts';
 import { mediaUrl } from '../api/client';
-import reviewsApi from '../api/reviews';
+import engagementApi from '../api/reviews';
 import Loader from '../components/common/Loader';
 import { useAuth } from '../context/AuthContext';
 
-// Post detail — shows gallery, body, reviews. Commenting requires sign-up.
+// Post detail — shows gallery, body, reviews & comments. Engaging requires sign-up.
 export default function PostDetail() {
   const { id: slug } = useParams();
   const { isAuthenticated } = useAuth();
   const [post, setPost] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [comments, setComments] = useState([]);
   const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(5);
+  const [reviewBody, setReviewBody] = useState('');
+  const [error, setError] = useState('');
 
+  // Load the post by slug first, then its reviews/comments by post id.
   useEffect(() => {
     let active = true;
     postsApi
       .get(slug)
-      .then((data) => active && setPost(data))
+      .then((data) => {
+        if (!active) return;
+        setPost(data);
+        loadEngagement(data.id);
+      })
       .catch(() => active && setPost(false));
-    reviewsApi
-      .listForPost(slug)
-      .then((data) => active && setReviews(Array.isArray(data) ? data : []))
-      .catch(() => active && setReviews([]));
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
+
+  function loadEngagement(postId) {
+    engagementApi.listReviews(postId).then(setReviews).catch(() => setReviews([]));
+    engagementApi.listComments(postId).then(setComments).catch(() => setComments([]));
+  }
+
+  async function submitComment(e) {
+    e.preventDefault();
+    setError('');
+    try {
+      await engagementApi.addComment(post.id, { body: comment });
+      setComment('');
+      const fresh = await engagementApi.listComments(post.id);
+      setComments(fresh);
+    } catch (err) {
+      setError(err?.message || 'Failed to post comment.');
+    }
+  }
+
+  async function submitReview(e) {
+    e.preventDefault();
+    setError('');
+    try {
+      await engagementApi.addReview(post.id, { rating: Number(rating), body: reviewBody });
+      setReviewBody('');
+      const fresh = await engagementApi.listReviews(post.id);
+      setReviews(fresh);
+    } catch (err) {
+      setError(err?.message || 'Failed to submit review.');
+    }
+  }
 
   if (post === false) {
     return (
@@ -40,16 +77,6 @@ export default function PostDetail() {
   }
 
   if (!post) return <Loader label="Loading post…" />;
-
-  function submitComment(e) {
-    e.preventDefault();
-    // Stubbed — would call reviewsApi.addComment / addReview.
-    setReviews((prev) => [
-      { id: `local-${Date.now()}`, author: 'you', body: comment },
-      ...prev,
-    ]);
-    setComment('');
-  }
 
   return (
     <Container className="py-4">
@@ -80,17 +107,68 @@ export default function PostDetail() {
         </Col>
 
         <Col lg={4}>
+          {error && <Alert variant="danger" className="small">{error}</Alert>}
+
+          {!isAuthenticated && (
+            <Alert variant="info" className="small">
+              <strong>Sign up to engage.</strong> You must be a registered member to
+              post reviews or comments.{' '}
+              <Link to="/register">Create an account</Link>.
+            </Alert>
+          )}
+
+          {/* Reviews */}
+          <Card className="ah-card border-0 mb-3">
+            <Card.Body>
+              <h5 className="fw-bold">Reviews ({reviews.length})</h5>
+
+              {isAuthenticated && (
+                <Form onSubmit={submitReview} className="mb-3">
+                  <div className="d-flex gap-2 align-items-center mb-2">
+                    <Form.Label className="mb-0 small">Rating</Form.Label>
+                    <Form.Select
+                      size="sm"
+                      style={{ width: 80 }}
+                      value={rating}
+                      onChange={(e) => setRating(e.target.value)}
+                    >
+                      {[5, 4, 3, 2, 1].map((n) => (
+                        <option key={n} value={n}>{n} ★</option>
+                      ))}
+                    </Form.Select>
+                  </div>
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    placeholder="Your review…"
+                    value={reviewBody}
+                    onChange={(e) => setReviewBody(e.target.value)}
+                  />
+                  <Button type="submit" variant="outline-primary" size="sm" className="mt-2">
+                    Submit review
+                  </Button>
+                </Form>
+              )}
+
+              {reviews.length === 0 ? (
+                <p className="ah-muted small mb-0">No reviews yet.</p>
+              ) : (
+                <ul className="list-unstyled mb-0">
+                  {reviews.map((r) => (
+                    <li key={r.id} className="border-top py-2">
+                      <div className="text-warning small">{'★'.repeat(r.rating)}<span className="ah-muted">{'★'.repeat(5 - r.rating)}</span></div>
+                      <div className="small" dangerouslySetInnerHTML={{ __html: r.body || '' }} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card.Body>
+          </Card>
+
+          {/* Comments */}
           <Card className="ah-card border-0">
             <Card.Body>
-              <h5 className="fw-bold">Reviews &amp; comments</h5>
-
-              {!isAuthenticated && (
-                <Alert variant="info" className="small">
-                  <strong>Sign up to comment.</strong> You must be a registered member to
-                  post reviews or comments.{' '}
-                  <Link to="/register">Create an account</Link>.
-                </Alert>
-              )}
+              <h5 className="fw-bold">Comments ({comments.length})</h5>
 
               {isAuthenticated && (
                 <Form onSubmit={submitComment} className="mb-3">
@@ -108,14 +186,13 @@ export default function PostDetail() {
                 </Form>
               )}
 
-              {reviews.length === 0 ? (
+              {comments.length === 0 ? (
                 <p className="ah-muted small mb-0">No comments yet.</p>
               ) : (
                 <ul className="list-unstyled mb-0">
-                  {reviews.map((r) => (
-                    <li key={r.id} className="border-top py-2">
-                      <div className="fw-semibold small">{r.author}</div>
-                      <div className="small">{r.body}</div>
+                  {comments.map((c) => (
+                    <li key={c.id} className={`py-2 ${c.parentId ? 'ps-3 border-start' : 'border-top'}`}>
+                      <div className="small" dangerouslySetInnerHTML={{ __html: c.body || '' }} />
                     </li>
                   ))}
                 </ul>
