@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap'
 import travelApi from '../api/travel';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
+import ImageUploader from '../components/upload/ImageUploader';
 import { useAuth } from '../context/AuthContext';
 
 export default function TravelBlog() {
@@ -12,6 +13,7 @@ export default function TravelBlog() {
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [body, setBody] = useState('');
+  const [images, setImages] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,10 +43,14 @@ export default function TravelBlog() {
         .map((p) => `<p>${p.trim()}</p>`)
         .join('');
       const created = await travelApi.createPost({ title, location, bodyHtml });
+      if (images.length > 0) {
+        await travelApi.uploadImages(created.id, images);
+      }
       await travelApi.publishPost(created.id);
       setTitle('');
       setLocation('');
       setBody('');
+      setImages([]);
       await load();
     } catch (err) {
       setError(err?.message || 'Failed to publish travel post.');
@@ -93,6 +99,10 @@ export default function TravelBlog() {
                   placeholder="Share the route, stops, and tips…"
                   required
                 />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label className="small mb-1">Photos (optional, up to 20)</Form.Label>
+                <ImageUploader onChange={setImages} maxFiles={20} />
               </Form.Group>
               <Button type="submit" variant="primary" disabled={saving}>
                 {saving ? 'Publishing…' : 'Publish post'}

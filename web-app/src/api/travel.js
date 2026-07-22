@@ -13,6 +13,16 @@ export const travelApi = {
   getPost: (slug) => client.get(`/travel/posts/${slug}`).then(unwrap),
   createPost: (payload) => client.post('/travel/posts', payload).then(unwrap),
   publishPost: (id) => client.post(`/travel/posts/${id}/publish`).then(unwrap),
+  // Upload images to a travel post; `files` is a FileList/array of File.
+  uploadImages: (postId, files) => {
+    const form = new FormData();
+    Array.from(files).forEach((f) => form.append('files', f));
+    return client
+      .post(`/travel/posts/${postId}/images`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then(unwrap);
+  },
 
   // Tours / tour guide
   listTours: (params) => client.get('/travel/tours', { params }).then(unwrap),

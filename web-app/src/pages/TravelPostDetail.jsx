@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import travelApi from '../api/travel';
+import { mediaUrl } from '../api/client';
 import Loader from '../components/common/Loader';
 
 // Travel post detail page. The :id route param carries the post slug.
@@ -39,6 +40,17 @@ export default function TravelPostDetail() {
       {post.publishedAt && (
         <p className="ah-muted small">Published {new Date(post.publishedAt).toLocaleDateString()}</p>
       )}
+
+      {/* Photo gallery */}
+      {(post.images || []).map((img, i) => (
+        <img
+          key={img.id || i}
+          src={mediaUrl(img.url)}
+          alt={`${post.title} ${i + 1}`}
+          className="img-fluid rounded mb-3"
+        />
+      ))}
+
       {/* Server-sanitized HTML body. */}
       <div dangerouslySetInnerHTML={{ __html: post.bodyHtml || '' }} />
     </Container>

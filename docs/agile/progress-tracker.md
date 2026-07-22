@@ -52,7 +52,7 @@ _Last updated: 2026-07-22_
 | S4 | US-404 | Buyer KYC submission | kyc | ✅ Done | Same flow, BUYER type; verified |
 | S4 | US-405 | KYC review & approval | kyc | ✅ Done | `kyc:review` queue + approve/reject; verified. Control-panel UI pending |
 | S4 | US-406 | Listing approval queue | marketplace | ✅ Done | `listing:approve` approve/reject; verified. Control-panel UI pending |
-| S5 | US-501 | Publish travel blog post | travel | 🔵 In-Progress | Create/publish/detail + sanitized body verified; per-post image gallery pending |
+| S5 | US-501 | Publish travel blog post | travel | ✅ Done | Create/publish/detail + sanitized body + image gallery (V6, 20-cap/type/resolution validated); verified |
 | S5 | US-502 | Tour guide listing + categories | travel | ✅ Done | Tours CRUD (guide-owned); category master linkage optional; verified |
 | S5 | US-503 | Create / join groups | community | ✅ Done | Groups CRUD + join/leave (owner-can't-leave 409); verified |
 | S5 | US-504 | Follow users / entities | community | ✅ Done | Follow/unfollow (self 400, dup 409) + follower/following counts; verified |
@@ -69,7 +69,7 @@ _Last updated: 2026-07-22_
 | S2 Catalog & Media | 6 | 6 | 0 | 0 | 0 | 100% |
 | S3 Engagement & Moderation | 5 | 5 | 0 | 0 | 0 | 100% |
 | S4 Marketplace & KYC | 6 | 6 | 0 | 0 | 0 | 100% (control-panel UI pending) |
-| S5 Travel & Community | 5 | 4 | 1 | 0 | 0 | ~90% (Community + Discovery done) |
+| S5 Travel & Community | 5 | 5 | 0 | 0 | 0 | 100% |
 | **Overall** | **38** | **8** | **0** | **30** | **0** | **~21%** |
 
 ---
