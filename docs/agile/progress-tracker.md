@@ -27,14 +27,14 @@ _Last updated: 2026-07-22_
 | S0 | US-006 | Control-panel scaffold (Vite + React 18 + Bootstrap 5) | Control-panel | ✅ Done | Dev port 5174 |
 | S0 | US-007 | Docs set (product / architecture / agile / design) | Docs | ✅ Done | This tracker included |
 | S0 | US-008 | CI pipeline (lint + build + test) | CI | ✅ Done | Runs on every push |
-| S1 | US-101 | User signup | identity | ⚪ Todo | Emits `identity.user.registered` |
-| S1 | US-102 | User login (JWT) + refresh | identity | ⚪ Todo | |
-| S1 | US-103 | Logout / session invalidation | identity | ⚪ Todo | |
-| S1 | US-104 | Password policy & reset | identity | ⚪ Todo | |
-| S1 | US-105 | Seed 8 fixed roles + permissions | identity / RBAC | ⚪ Todo | `resource:action` model |
-| S1 | US-106 | RBAC enforcement (route + method guards) | RBAC | ⚪ Todo | Server-side enforced |
-| S1 | US-107 | User management screens | control-panel | ⚪ Todo | |
-| S1 | US-108 | Masters CRUD (14 masters) | adminops / control-panel | ⚪ Todo | Make…Permission |
+| S1 | US-101 | User signup | identity | ✅ Done | Emits `identity.user.registered` via Outbox; verified end-to-end |
+| S1 | US-102 | User login (JWT) + refresh | identity | 🔵 In-Progress | Login + JWT access/refresh issuance done & verified; `/auth/refresh` exchange endpoint pending |
+| S1 | US-103 | Logout / session invalidation | identity | 🔵 In-Progress | Stateless JWT — client clears token; server-side refresh-token revocation pending |
+| S1 | US-104 | Password policy & reset | identity | ⚪ Todo | BCrypt + min-length in place; reset flow pending |
+| S1 | US-105 | Seed 8 fixed roles + permissions | identity / RBAC | ✅ Done | 8 roles, 21 permissions, mappings (Flyway V2 / local seeder) |
+| S1 | US-106 | RBAC enforcement (route + method guards) | RBAC | ✅ Done | JWT authorities + `@PreAuthorize`; 403 denials verified |
+| S1 | US-107 | User management (list, assign roles, status) | identity / control-panel | 🔵 In-Progress | Backend endpoints done & verified (roles/status lifecycle); control-panel UI wiring pending |
+| S1 | US-108 | Masters CRUD | adminops / control-panel | 🔵 In-Progress | Generic CRUD for 7 name+active masters done & verified; currencies/cities/make hierarchy + roles/permissions pending |
 | S2 | US-201 | Create car/bike post + rich text | catalog | ⚪ Todo | react-quill, sanitized |
 | S2 | US-202 | Edit / delete post | catalog | ⚪ Todo | |
 | S2 | US-203 | Post list + detail + filters | catalog | ⚪ Todo | Filter by Master attrs |
@@ -65,7 +65,7 @@ _Last updated: 2026-07-22_
 | Sprint | Stories | Done | In-Progress | Todo | Blocked | % Complete |
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 Foundation | 8 | 8 | 0 | 0 | 0 | **100%** |
-| S1 Identity & RBAC | 8 | 0 | 0 | 8 | 0 | 0% |
+| S1 Identity & RBAC | 8 | 3 | 4 | 1 | 0 | ~65% |
 | S2 Catalog | 6 | 0 | 0 | 6 | 0 | 0% |
 | S3 Engagement | 5 | 0 | 0 | 5 | 0 | 0% |
 | S4 Marketplace & KYC | 6 | 0 | 0 | 6 | 0 | 0% |

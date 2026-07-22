@@ -38,18 +38,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => {
-    const data = await authApi.login(credentials);
-    // Expected shape: { token, user }
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    // Backend returns { accessToken, ... }; the user profile comes from /auth/me.
+    const tokens = await authApi.login(credentials);
+    setToken(tokens.accessToken);
+    const me = await authApi.me();
+    setUser(me);
+    return me;
   }, []);
 
   const register = useCallback(async (payload) => {
-    const data = await authApi.register(payload);
-    if (data.token) setToken(data.token);
-    if (data.user) setUser(data.user);
-    return data.user;
+    const tokens = await authApi.register(payload);
+    setToken(tokens.accessToken);
+    const me = await authApi.me();
+    setUser(me);
+    return me;
   }, []);
 
   const logout = useCallback(async () => {

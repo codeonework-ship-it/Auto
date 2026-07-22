@@ -51,11 +51,20 @@ Set `EVENTS_KAFKA_ENABLED=false` to run without a broker (the relay just marks r
 docker compose up --build backend postgres kafka
 ```
 
-**Locally (requires Maven + a running Postgres):**
+**Locally against Postgres (requires Maven + a running Postgres):**
 ```bash
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/AutomobilesDB_Dev
 mvn spring-boot:run
 ```
+
+**Locally with NO dependencies (in-memory H2 — great for a quick run/demo):**
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+# or on a custom port if 8080 is taken:
+java -jar target/*.jar --spring.profiles.active=local --server.port=18080
+```
+The `local` profile uses in-memory H2, disables Flyway/Kafka, and seeds RBAC + starter
+masters via `LocalDataSeeder`. Data resets on restart.
 
 - API base: `http://localhost:8080/api/v1`
 - Swagger UI: `http://localhost:8080/swagger-ui.html`

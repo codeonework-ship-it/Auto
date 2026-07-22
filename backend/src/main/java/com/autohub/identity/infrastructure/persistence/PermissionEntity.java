@@ -22,6 +22,12 @@ public class PermissionEntity {
 
     protected PermissionEntity() { }
 
+    public PermissionEntity(UUID id, String code, String description) {
+        this.id = id;
+        this.code = code;
+        this.description = description;
+    }
+
     public UUID getId() { return id; }
     public String getCode() { return code; }
     public String getDescription() { return description; }

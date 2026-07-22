@@ -68,6 +68,16 @@ public class UserEntity {
         this.roles.add(role);
     }
 
+    public void setRoles(Set<RoleEntity> roles) {
+        this.roles = roles;
+        this.updatedAt = Instant.now();
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+        this.updatedAt = Instant.now();
+    }
+
     public UUID getId() { return id; }
     public String getEmail() { return email; }
     public String getUsername() { return username; }

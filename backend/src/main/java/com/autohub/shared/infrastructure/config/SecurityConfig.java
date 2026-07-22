@@ -38,12 +38,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Allow same-origin frames so the H2 console renders on the `local` profile.
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public auth entry points only — /auth/me requires authentication.
                         .requestMatchers(
-                                "/api/v1/auth/**",
+                                "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh",
                                 "/actuator/health", "/actuator/info",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/h2-console/**")
                         .permitAll()
                         // Public reads of published content
                         .requestMatchers(HttpMethod.GET,

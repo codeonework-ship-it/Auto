@@ -37,6 +37,17 @@ public class RoleEntity {
 
     protected RoleEntity() { }
 
+    public RoleEntity(UUID id, String code, String name, String description) {
+        this.id = id;
+        this.code = code;
+        this.name = name;
+        this.description = description;
+    }
+
+    public void setPermissions(Set<PermissionEntity> permissions) {
+        this.permissions = permissions;
+    }
+
     public UUID getId() { return id; }
     public String getCode() { return code; }
     public String getName() { return name; }
