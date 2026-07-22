@@ -27,16 +27,16 @@ export default function MasterCrud() {
   const { register, handleSubmit, reset, formState } = useForm();
 
   const load = useCallback(async () => {
-    if (!master) return;
+    if (!master || !master.backed) return;
     setLoading(true);
     setError(null);
     try {
       const data = await mastersApi.list(master.resource);
       setRows(Array.isArray(data) ? data : data?.items ?? []);
     } catch (e) {
-      // Backend not wired yet — show placeholder rows so the UI is usable.
-      setError(e.normalizedMessage || 'Failed to load (showing sample data).');
-      setRows(sampleRows(master));
+      // Graceful empty state — no sample data.
+      setError(e.normalizedMessage || 'Could not load records.');
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -58,13 +58,17 @@ export default function MasterCrud() {
     setShowForm(true);
   };
 
+  // The backend accepts only { name, active } — send exactly that.
+  const toPayload = (values) => ({ name: values.name, active: !!values.active });
+
   const onSubmit = async (values) => {
     setBusy(true);
+    setError(null);
     try {
       if (editing?.id != null) {
-        await mastersApi.update(master.resource, editing.id, values);
+        await mastersApi.update(master.resource, editing.id, toPayload(values));
       } else {
-        await mastersApi.create(master.resource, values);
+        await mastersApi.create(master.resource, toPayload(values));
       }
       setShowForm(false);
       await load();
@@ -77,6 +81,7 @@ export default function MasterCrud() {
 
   const confirmDelete = async () => {
     setBusy(true);
+    setError(null);
     try {
       await mastersApi.remove(master.resource, deleteTarget.id);
       setDeleteTarget(null);
@@ -97,9 +102,7 @@ export default function MasterCrud() {
       sortable: true,
       render:
         f.type === 'checkbox'
-          ? (row) => (
-              <StatusBadge status={row[f.name] ? 'active' : 'disabled'} />
-            )
+          ? (row) => <StatusBadge status={row[f.name] ? 'active' : 'disabled'} />
           : undefined,
     }));
     return [
@@ -137,6 +140,8 @@ export default function MasterCrud() {
     );
   }
 
+  const backendPending = !master.backed;
+
   return (
     <div>
       <PageHeader
@@ -147,18 +152,34 @@ export default function MasterCrud() {
             <Link to="/masters" className="btn btn-light btn-sm">
               <FaArrowLeft className="me-1" /> All Masters
             </Link>
-            <Can permission="master:manage">
-              <Button size="sm" onClick={openCreate}>
-                <FaPlus className="me-1" /> New {master.label}
-              </Button>
-            </Can>
+            {!backendPending && (
+              <Can permission="master:manage">
+                <Button size="sm" onClick={openCreate}>
+                  <FaPlus className="me-1" /> New {master.label}
+                </Button>
+              </Can>
+            )}
           </>
         }
       />
 
-      {error && <Alert variant="info">{error}</Alert>}
-
-      <DataTable columns={columns} data={rows} loading={loading} pageSize={10} />
+      {backendPending ? (
+        <Alert variant="warning">
+          <strong>Backend pending.</strong> The API for “{master.plural}” is not available yet.
+          {master.help ? ` ${master.help}` : ''}
+        </Alert>
+      ) : (
+        <>
+          {error && <Alert variant="info">{error}</Alert>}
+          <DataTable
+            columns={columns}
+            data={rows}
+            loading={loading}
+            pageSize={10}
+            emptyMessage={`No ${master.plural.toLowerCase()} yet.`}
+          />
+        </>
+      )}
 
       {/* Create / edit modal */}
       <Modal show={showForm} onHide={() => setShowForm(false)} centered>
@@ -244,18 +265,4 @@ function defaultValues(master) {
     v[f.name] = f.type === 'checkbox' ? true : '';
   });
   return v;
-}
-
-// Placeholder rows shown when the API is unavailable.
-function sampleRows(master) {
-  return Array.from({ length: 3 }).map((_, i) => {
-    const row = { id: i + 1 };
-    master.fields.forEach((f) => {
-      if (f.type === 'checkbox') row[f.name] = i % 2 === 0;
-      else if (f.type === 'number') row[f.name] = 2020 + i;
-      else if (f.type === 'select') row[f.name] = (f.options || ['—'])[0];
-      else row[f.name] = `${f.label} ${i + 1}`;
-    });
-    return row;
-  });
 }

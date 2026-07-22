@@ -18,6 +18,7 @@ import TourGuide from './pages/TourGuide';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 import Kyc from './pages/Kyc';
+import Search from './pages/Search';
 import NotFound from './pages/NotFound';
 
 /*
@@ -57,6 +58,9 @@ export default function App() {
 
           {/* Pillar 3: Community */}
           <Route path="/community" element={<Community />} />
+
+          {/* Discovery: global search */}
+          <Route path="/search" element={<Search />} />
 
           <Route
             path="/profile"

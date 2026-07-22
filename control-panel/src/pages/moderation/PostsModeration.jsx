@@ -1,27 +1,32 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Button } from 'react-bootstrap';
-import { FaCheck, FaBan } from 'react-icons/fa';
+import { Button, Alert } from 'react-bootstrap';
+import { FaTrash } from 'react-icons/fa';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import Can from '../../components/Can';
-import moderationApi from '../../api/moderation';
+import postsApi from '../../api/posts';
 
-// Moderation queue for reported car/bike posts and comments.
+// Posts moderation — lists published catalog posts and lets a moderator take one down
+// (DELETE /posts/{id}, requires post:moderate). No dedicated report queue exists for posts,
+// so this lists the live catalog. Reported items are triaged on the Reports screen.
 export default function PostsModeration() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [action, setAction] = useState(null); // { row, type }
+  const [error, setError] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await moderationApi.listQueue('posts');
+      const data = await postsApi.list();
       setRows(Array.isArray(data) ? data : data?.items ?? []);
-    } catch {
-      setRows(SAMPLE);
+    } catch (e) {
+      setError(e.normalizedMessage || 'Could not load posts.');
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -31,75 +36,70 @@ export default function PostsModeration() {
     load();
   }, [load]);
 
-  const runAction = async () => {
+  const confirmDelete = async () => {
     setBusy(true);
-    const { row, type } = action;
     try {
-      if (type === 'approve') await moderationApi.approve(row.id);
-      else await moderationApi.takedown(row.id, 'Policy violation');
-    } catch {
-      /* scaffold */
+      await postsApi.remove(deleteTarget.id);
+      setDeleteTarget(null);
+      await load();
+    } catch (e) {
+      setError(e.normalizedMessage || 'Take-down failed.');
+      setDeleteTarget(null);
     } finally {
-      setRows((rs) =>
-        rs.map((r) =>
-          r.id === row.id
-            ? { ...r, status: type === 'approve' ? 'approved' : 'takedown' }
-            : r
-        )
-      );
       setBusy(false);
-      setAction(null);
     }
   };
 
   const columns = [
-    { key: 'id', header: 'ID', sortable: true },
+    { key: 'kind', header: 'Kind', sortable: true },
     { key: 'title', header: 'Post', sortable: true },
-    { key: 'author', header: 'Author', sortable: true },
-    { key: 'reason', header: 'Report Reason' },
-    { key: 'reports', header: 'Reports', sortable: true },
+    { key: 'slug', header: 'Slug' },
+    { key: 'authorId', header: 'Author', render: (r) => shortId(r.authorId) },
+    { key: 'imageCount', header: 'Images', sortable: true },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     {
       key: '__actions',
       header: 'Actions',
-      render: (r) =>
-        r.status === 'pending' ? (
-          <Can permission="post:moderate">
-            <div className="d-flex gap-2">
-              <Button size="sm" variant="outline-success" onClick={() => setAction({ row: r, type: 'approve' })}>
-                <FaCheck />
-              </Button>
-              <Button size="sm" variant="outline-danger" onClick={() => setAction({ row: r, type: 'takedown' })}>
-                <FaBan />
-              </Button>
-            </div>
-          </Can>
-        ) : (
-          <span className="ah-muted">—</span>
-        ),
+      render: (r) => (
+        <Can permission="post:moderate">
+          <Button
+            size="sm"
+            variant="outline-danger"
+            title="Take down"
+            onClick={() => setDeleteTarget(r)}
+          >
+            <FaTrash />
+          </Button>
+        </Can>
+      ),
     },
   ];
 
   return (
     <div>
-      <PageHeader title="Posts Moderation" subtitle="Review reported posts and comments." />
-      <DataTable columns={columns} data={rows} loading={loading} />
+      <PageHeader title="Posts Moderation" subtitle="Review and take down catalog posts." />
+      {error && <Alert variant="info">{error}</Alert>}
+      <DataTable
+        columns={columns}
+        data={rows}
+        loading={loading}
+        emptyMessage="No posts found."
+      />
       <ConfirmModal
-        show={!!action}
-        title={action?.type === 'approve' ? 'Approve post' : 'Take down post'}
-        body={action ? `${action.type === 'approve' ? 'Clear' : 'Take down'} “${action.row.title}”?` : ''}
-        confirmLabel={action?.type === 'approve' ? 'Approve' : 'Take down'}
-        variant={action?.type === 'approve' ? 'success' : 'danger'}
+        show={!!deleteTarget}
+        title="Take down post"
+        body={deleteTarget ? `Permanently remove “${deleteTarget.title}”? This cannot be undone.` : ''}
+        confirmLabel="Take down"
+        variant="danger"
         busy={busy}
-        onConfirm={runAction}
-        onCancel={() => setAction(null)}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   );
 }
 
-const SAMPLE = [
-  { id: 5521, title: '2024 Ducati Panigale review', author: 'rider@autohub.dev', reason: 'Spam', reports: 4, status: 'pending' },
-  { id: 5530, title: 'Best budget EVs', author: 'eco@autohub.dev', reason: 'Misinformation', reports: 2, status: 'pending' },
-  { id: 5544, title: 'Off-road build thread', author: 'jeep@autohub.dev', reason: 'Offensive', reports: 1, status: 'approved' },
-];
+function shortId(id) {
+  const s = String(id ?? '');
+  return s.length > 10 ? `${s.slice(0, 8)}…` : s || '—';
+}

@@ -1,22 +1,29 @@
 import client from './client';
 
-// KYC review service (marketplace/identity). Reviews buyer/seller verification submissions.
+// Backend response envelope { success, data, timestamp } — unwrap to the payload.
+const unwrap = (r) => r.data?.data ?? r.data;
+
+// KYC review service (kyc context — KycController, /api/v1/kyc). Reviewer endpoints require kyc:review.
 export const kycApi = {
+  // GET /kyc?status= -> [{ id, userId, kycType, legalName, documentType, documentNumber,
+  //   phone, addressLine, city, country, status, reviewerId, reviewNotes, submittedAt, ... }]
   async list(params = {}) {
-    const { data } = await client.get('/kyc/submissions', { params });
-    return data;
+    return unwrap(await client.get('/kyc', { params }));
   },
+
+  // GET /kyc/{id} — full submission detail.
   async get(id) {
-    const { data } = await client.get(`/kyc/submissions/${id}`);
-    return data;
+    return unwrap(await client.get(`/kyc/${id}`));
   },
-  async approve(id, note) {
-    const { data } = await client.post(`/kyc/submissions/${id}/approve`, { note });
-    return data;
+
+  // POST /kyc/{id}/approve
+  async approve(id) {
+    return unwrap(await client.post(`/kyc/${id}/approve`));
   },
-  async reject(id, reason) {
-    const { data } = await client.post(`/kyc/submissions/${id}/reject`, { reason });
-    return data;
+
+  // POST /kyc/{id}/reject { notes }
+  async reject(id, notes) {
+    return unwrap(await client.post(`/kyc/${id}/reject`, { notes }));
   },
 };
 

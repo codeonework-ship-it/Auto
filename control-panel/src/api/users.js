@@ -1,20 +1,23 @@
 import client from './client';
-import { crudFactory } from './crudFactory';
 
-// User management service (identity context).
+// Backend wraps every response as { success, data, timestamp } — unwrap to the payload.
+const unwrap = (r) => r.data?.data ?? r.data;
+
+// User management service (identity context — UserAdminController, /api/v1/users).
 export const usersApi = {
-  ...crudFactory('/users'),
-
-  // Assign roles to a user.
-  async setRoles(userId, roleIds) {
-    const { data } = await client.put(`/users/${userId}/roles`, { roleIds });
-    return data;
+  // GET /users -> [{ id, email, username, status, roles[] }]
+  async list(params = {}) {
+    return unwrap(await client.get('/users', { params }));
   },
 
-  // Enable / disable / suspend an account.
+  // PUT /users/{id}/roles { roleCodes } — replace the user's role set.
+  async setRoles(userId, roleCodes) {
+    return unwrap(await client.put(`/users/${userId}/roles`, { roleCodes }));
+  },
+
+  // PATCH /users/{id}/status { status } — ACTIVE | SUSPENDED | BANNED | PENDING.
   async setStatus(userId, status) {
-    const { data } = await client.patch(`/users/${userId}/status`, { status });
-    return data;
+    return unwrap(await client.patch(`/users/${userId}/status`, { status }));
   },
 };
 

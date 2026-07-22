@@ -54,9 +54,9 @@ _Last updated: 2026-07-22_
 | S4 | US-406 | Listing approval queue | marketplace | ✅ Done | `listing:approve` approve/reject; verified. Control-panel UI pending |
 | S5 | US-501 | Publish travel blog post | travel | 🔵 In-Progress | Create/publish/detail + sanitized body verified; per-post image gallery pending |
 | S5 | US-502 | Tour guide listing + categories | travel | ✅ Done | Tours CRUD (guide-owned); category master linkage optional; verified |
-| S5 | US-503 | Create / join groups | community | ⚪ Todo | Not started |
-| S5 | US-504 | Follow users / entities | community | ⚪ Todo | Not started |
-| S5 | US-505 | Activity feed | community | ⚪ Todo | Not started |
+| S5 | US-503 | Create / join groups | community | ✅ Done | Groups CRUD + join/leave (owner-can't-leave 409); verified |
+| S5 | US-504 | Follow users / entities | community | ✅ Done | Follow/unfollow (self 400, dup 409) + follower/following counts; verified |
+| S5 | US-505 | Activity feed + global search | discovery | ✅ Done | Unified `/feed` (posts+travel+listings) + `/search?q=&type=`; verified |
 
 ---
 
@@ -69,7 +69,7 @@ _Last updated: 2026-07-22_
 | S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
 | S3 Engagement & Moderation | 5 | 4 | 1 | 0 | 0 | ~90% |
 | S4 Marketplace & KYC | 6 | 6 | 0 | 0 | 0 | 100% (control-panel UI pending) |
-| S5 Travel & Community | 5 | 1 | 1 | 3 | 0 | ~35% (Community not started) |
+| S5 Travel & Community | 5 | 4 | 1 | 0 | 0 | ~90% (Community + Discovery done) |
 | **Overall** | **38** | **8** | **0** | **30** | **0** | **~21%** |
 
 ---

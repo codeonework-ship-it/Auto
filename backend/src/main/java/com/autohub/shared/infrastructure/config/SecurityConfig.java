@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/api/v1/posts/mine",
                                 "/api/v1/marketplace/listings/mine",
                                 "/api/v1/marketplace/listings/*/offers",
-                                "/api/v1/travel/posts/mine")
+                                "/api/v1/travel/posts/mine",
+                                "/api/v1/community/groups/mine",
+                                "/api/v1/community/follows/**")
                         .authenticated()
                         // Public reads of published content + served media
                         .requestMatchers(HttpMethod.GET,
@@ -68,6 +70,9 @@ public class SecurityConfig {
                                 "/api/v1/marketplace/listings/**",
                                 "/api/v1/travel/**",
                                 "/api/v1/masters/**",
+                                "/api/v1/community/groups/**",
+                                "/api/v1/search/**",
+                                "/api/v1/feed/**",
                                 "/media/**")
                         .permitAll()
                         .anyRequest().authenticated())

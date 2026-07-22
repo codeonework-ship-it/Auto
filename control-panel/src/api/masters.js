@@ -1,27 +1,39 @@
 import client from './client';
 
-// Generic Masters service (adminops context).
-// Each master is addressed by its `resource` path segment, e.g. /masters/vehicle-makes.
+// Backend response envelope { success, data, timestamp } — unwrap to the payload.
+const unwrap = (r) => r.data?.data ?? r.data;
+
+// Generic Masters service (adminops — MasterController, /api/v1/masters).
+// Every simple master is { id, name, active }; writes accept { name, active } only.
 export const mastersApi = {
+  // GET /masters -> [resourceKey] — the master resource keys the backend actually serves.
+  async resources() {
+    return unwrap(await client.get('/masters'));
+  },
+
+  // GET /masters/{resource} -> [{ id, name, active }]
   async list(resource, params = {}) {
-    const { data } = await client.get(`/masters/${resource}`, { params });
-    return data;
+    return unwrap(await client.get(`/masters/${resource}`, { params }));
   },
-  async get(resource, id) {
-    const { data } = await client.get(`/masters/${resource}/${id}`);
-    return data;
-  },
+
+  // POST /masters/{resource} { name, active }
   async create(resource, payload) {
-    const { data } = await client.post(`/masters/${resource}`, payload);
-    return data;
+    return unwrap(await client.post(`/masters/${resource}`, payload));
   },
+
+  // PUT /masters/{resource}/{id} { name, active }
   async update(resource, id, payload) {
-    const { data } = await client.put(`/masters/${resource}/${id}`, payload);
-    return data;
+    return unwrap(await client.put(`/masters/${resource}/${id}`, payload));
   },
+
+  // PATCH /masters/{resource}/{id}/toggle — flip the active flag.
+  async toggle(resource, id) {
+    return unwrap(await client.patch(`/masters/${resource}/${id}/toggle`));
+  },
+
+  // DELETE /masters/{resource}/{id}
   async remove(resource, id) {
-    const { data } = await client.delete(`/masters/${resource}/${id}`);
-    return data;
+    return unwrap(await client.delete(`/masters/${resource}/${id}`));
   },
 };
 

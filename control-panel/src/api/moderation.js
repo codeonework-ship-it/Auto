@@ -1,26 +1,29 @@
 import client from './client';
 
-// Moderation service (engagement/adminops) — handles reported posts, comments, listings.
+// Backend response envelope { success, data, timestamp } — unwrap to the payload.
+const unwrap = (r) => r.data?.data ?? r.data;
+
+// Moderation service (moderation context — ModerationController, /api/v1/moderation).
 export const moderationApi = {
+  // GET /moderation/reports?status= -> [{ id, reporterId, subjectType, subjectId,
+  //   reasonId, details, status, createdAt }]. status ∈ OPEN | REVIEWING | RESOLVED | DISMISSED.
   async listReports(params = {}) {
-    const { data } = await client.get('/moderation/reports', { params });
-    return data;
+    return unwrap(await client.get('/moderation/reports', { params }));
   },
-  async listQueue(type, params = {}) {
-    const { data } = await client.get(`/moderation/queue/${type}`, { params });
-    return data;
+
+  // PATCH /moderation/reports/{id} { status } — triage a report.
+  async setReportStatus(id, status) {
+    return unwrap(await client.patch(`/moderation/reports/${id}`, { status }));
   },
-  async approve(id) {
-    const { data } = await client.post(`/moderation/items/${id}/approve`);
-    return data;
+
+  // PATCH /moderation/comments/{id}/status { status } — VISIBLE | HIDDEN | FLAGGED.
+  async setCommentStatus(id, status) {
+    return unwrap(await client.patch(`/moderation/comments/${id}/status`, { status }));
   },
-  async reject(id, reason) {
-    const { data } = await client.post(`/moderation/items/${id}/reject`, { reason });
-    return data;
-  },
-  async takedown(id, reason) {
-    const { data } = await client.post(`/moderation/items/${id}/takedown`, { reason });
-    return data;
+
+  // PATCH /moderation/reviews/{id}/status { status } — VISIBLE | HIDDEN | FLAGGED.
+  async setReviewStatus(id, status) {
+    return unwrap(await client.patch(`/moderation/reviews/${id}/status`, { status }));
   },
 };
 
