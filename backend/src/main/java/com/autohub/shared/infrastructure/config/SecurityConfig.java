@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 "/api/v1/community/groups/mine",
                                 "/api/v1/community/follows/**")
                         .authenticated()
-                        // Public reads of published content + served media
+                        // Public reads of published content + served media + product catalog
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/posts/**",
                                 "/api/v1/marketplace/listings/**",
@@ -74,6 +74,7 @@ public class SecurityConfig {
                                 "/api/v1/community/groups/**",
                                 "/api/v1/search/**",
                                 "/api/v1/feed/**",
+                                "/api/v1/products/**",
                                 "/media/**")
                         .permitAll()
                         .anyRequest().authenticated())
@@ -90,7 +91,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:5500"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

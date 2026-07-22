@@ -2,8 +2,15 @@
 
 An enterprise-quality, zero-dependency automobile discovery & marketplace experience for **cars and bikes**: trending searches, Elite Garage (top-10 costliest) rankings, deep filtering, full technical specifications, reviews & ratings, professional comparisons, and a six-theme visual system including the original **Mech Command** cinematic-machine theme.
 
-> **Run it:** `node serve.mjs` (from this folder) → open **http://localhost:5500**. No install, no build step.
-> Any static file server works too (`npx http-server`, nginx, GitHub Pages…). ES modules require HTTP — don't open `index.html` via `file://`.
+**Fully API-driven — no mock data.** The catalog (100 products: 50 cars + 50 bikes across all 18 categories, with variants, grouped specs, reviews and images) is seeded into the database and served by the AutoHub Spring Boot API (`com.autohub.products` bounded context). Every product image is an **original SVG generated at seed time, stored in the DB, and served by the API** (`GET /api/v1/products/{slug}/images/{n}`) — no external or copyrighted assets.
+
+> **Run it (two processes):**
+> 1. **API** — from the repo root: `java -jar backend/target/autohub-backend-0.1.0-SNAPSHOT.jar --spring.profiles.active=local --server.port=18080`
+>    (first boot seeds the 100-product catalog deterministically — same data in every environment; on Postgres, Flyway `V7__product_catalog.sql` creates the tables)
+> 2. **Front-end** — `node serve.mjs` (from this folder) → open **http://localhost:5500**.
+>
+> Point at a different API with `localStorage.setItem('mv_api_base', 'https://your-host/api/v1')`.
+> API endpoints: `GET /api/v1/products` · `/products/{slug}` · `/products/{slug}/images/{n}` · `/products/reviews/latest?limit=`.
 
 ---
 
@@ -91,9 +98,21 @@ Functional (verified in-browser, zero console errors):
 
 Remaining manual QA (recommended before production): screen-reader pass (NVDA/VoiceOver), Lighthouse CI budget, cross-browser sweep (Chrome/Edge/Firefox/Safari — only standard CSS/JS used; `color-mix` and `clip-path` degrade gracefully), 200 % zoom.
 
-## 7 · API-readiness
+## 7 · Backend architecture (products bounded context)
 
-`js/data.js` mirrors REST resources (`/vehicles`, `/brands`, categories, embedded `reviews`) — swap the import for `fetch()` calls and the UI is unchanged. This showcase is intentionally standalone; it can later be fed by the AutoHub backend (`/api/v1/posts`, `/reviews`, masters) in this monorepo.
+```
+com.autohub.products
+├─ application/    ProductQueryService (list / detail / imageSvg / latestReviews)
+│                  ProductCatalogSeeder (deterministic 100-product seed, runs when empty)
+│                  ProductSvgArt (original SVG image generator)
+├─ infrastructure/ products, product_variants, product_spec_rows,
+│  persistence     product_images (SVG stored in DB), product_reviews
+└─ interfaces/web  ProductController — public read-only JSON + image/svg+xml endpoints
+```
+- Flyway `V7__product_catalog.sql` creates the tables on PostgreSQL; the `local` profile generates them from entities on H2.
+- The list DTO carries every scalar the UI needs (cards, filters, rankings, compare) so the grid needs one request; grouped specs/variants/reviews load per product and are cached client-side.
+- Images are immutable per seed → served with `Cache-Control: public, max-age=86400`.
+- Edge cases are seeded intentionally: a product with no price/rating/images (`novacore-ridgeline-gts`), review-less products, and Upcoming/Discontinued availability.
 
 ---
-*All vehicles, brands, prices and reviews are fictional demo data. "Mech Command" is an original visual language — no franchise names, characters or artwork are used.*
+*All vehicles, brands, prices and reviews are fictional, generated demo data served from the database. "Mech Command" is an original visual language — no franchise names, characters or artwork are used.*

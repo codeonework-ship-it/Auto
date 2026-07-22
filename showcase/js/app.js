@@ -4,7 +4,13 @@
    compare · reviews. Everything is progressive: storage failures and missing
    data degrade gracefully.
    ============================================================================ */
-import { VEHICLES, BRANDS, CAR_CATEGORIES, BIKE_CATEGORIES, CATEGORY_MAP, catLabel } from "./data.js";
+import { CAR_CATEGORIES, BIKE_CATEGORIES, CATEGORY_MAP, catLabel } from "./data.js";
+import { fetchProducts, fetchProduct, fetchLatestReviews, productImg, API_BASE } from "./api.js";
+
+/* Live catalog — loaded once from the Spring Boot API at boot (no mock data). */
+let VEHICLES = [];
+let BRANDS = [];
+const detailCache = new Map();   /* slug → full product detail */
 
 /* ----------------------------- tiny utilities ----------------------------- */
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -118,48 +124,29 @@ function renderCompareTray() {
       </span></div>`;
 }
 
-/* --------------------------- procedural SVG art --------------------------- */
-function vehicleArt(v, variant = 0, { label = "" } = {}) {
-  if (v.noArt) {
-    return `<svg viewBox="0 0 320 180" role="img" aria-label="No photo available for ${esc(v.model)}" width="320" height="180">
-      <rect width="320" height="180" fill="var(--surface-2)"/>
-      <text x="160" y="86" text-anchor="middle" font-size="34">📷</text>
-      <text x="160" y="116" text-anchor="middle" font-size="12" fill="var(--card-muted)">Image coming soon</text></svg>`;
-  }
-  const h = (v.hue + variant * 26) % 360;
-  const g1 = `hsl(${h} 72% 52%)`, g2 = `hsl(${(h + 45) % 360} 78% 40%)`;
-  const gid = `g${v.id.replace(/[^a-z0-9]/gi, "")}${variant}`;
-  const body = v.type === "car"
-    ? `<path d="M28 118 C40 96 62 90 88 86 L114 64 C152 47 208 47 242 66 L272 86 C292 92 300 101 302 113 L302 126 L282 128 A26 26 0 0 0 232 130 L124 130 A26 26 0 0 0 72 132 L30 128 Z" fill="url(#${gid})"/>
-       <path d="M122 66 L152 53 C182 45 210 47 231 62 L245 80 L124 82 Z" fill="rgba(240,246,255,.82)"/>
-       <circle cx="98" cy="130" r="21" fill="#141a26"/><circle cx="98" cy="130" r="9" fill="#8d97a8"/>
-       <circle cx="258" cy="130" r="21" fill="#141a26"/><circle cx="258" cy="130" r="9" fill="#8d97a8"/>
-       <rect x="286" y="98" width="12" height="5" rx="2" fill="hsl(${h} 80% 72%)"/>`
-    : `<circle cx="82" cy="122" r="34" fill="none" stroke="#141a26" stroke-width="11"/>
-       <circle cx="82" cy="122" r="10" fill="#8d97a8"/>
-       <circle cx="244" cy="122" r="34" fill="none" stroke="#141a26" stroke-width="11"/>
-       <circle cx="244" cy="122" r="10" fill="#8d97a8"/>
-       <path d="M82 122 L146 96 L196 100 L214 70 L232 62" fill="none" stroke="url(#${gid})" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-       <path d="M244 122 L214 70" fill="none" stroke="#3c4657" stroke-width="8" stroke-linecap="round"/>
-       <path d="M124 92 L188 80 L198 100 L150 106 Z" fill="url(#${gid})"/>
-       <path d="M204 63 L232 52" stroke="#3c4657" stroke-width="7" stroke-linecap="round"/>
-       <path d="M96 96 L134 90" stroke="#232b3a" stroke-width="10" stroke-linecap="round"/>`;
-  return `<svg viewBox="0 0 320 180" role="img" aria-label="${esc(v.brand)} ${esc(v.model)} illustration" width="320" height="180">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${g1}"/><stop offset="1" stop-color="${g2}"/></linearGradient></defs>
-    <rect width="320" height="180" fill="var(--bg-2)"/>
-    <path d="M0 148 H320" stroke="hsl(${h} 40% 45% / .5)" stroke-width="2"/>
-    <ellipse cx="168" cy="150" rx="140" ry="8" fill="rgba(0,0,0,.28)"/>
-    ${body}
-    ${label ? `<text x="12" y="170" font-size="11" fill="var(--ink-muted)" opacity=".9">${esc(label)}</text>` : ""}
-  </svg>`;
+/* ------------------------- API-served vehicle imagery ---------------------- */
+/* Original SVG artwork is generated at seed time, stored in the DB and served by
+   the Spring Boot API. Dimensions are declared so layout never shifts. */
+function noImageSvg(model) {
+  return `<svg viewBox="0 0 320 180" role="img" aria-label="No photo available for ${esc(model)}" width="320" height="180">
+    <rect width="320" height="180" fill="var(--surface-2)"/>
+    <text x="160" y="86" text-anchor="middle" font-size="34">📷</text>
+    <text x="160" y="116" text-anchor="middle" font-size="12" fill="var(--card-muted)">Image coming soon</text></svg>`;
+}
+function vehicleArt(v, position = 0, { label = "", eager = false } = {}) {
+  const count = v.imageCount ?? 0;
+  if (!count) return noImageSvg(v.model);
+  const pos = Math.min(position, count - 1);
+  return `<img src="${productImg(v.id, pos)}" alt="${esc(v.brand)} ${esc(v.model)}${label ? " — " + esc(label) : ""}"
+    width="640" height="360" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"
+    style="width:100%;height:100%;object-fit:cover;display:block">`;
 }
 
 /* ------------------------------ vehicle card ------------------------------ */
-function vehicleCard(v, { lazy = true } = {}) {
+function vehicleCard(v) {
   return `<article class="card reveal">
     <div class="v-art">
-      ${lazy ? `<div data-lazy-art="${v.id}" style="width:100%;height:100%"></div>` : vehicleArt(v)}
+      ${vehicleArt(v)}
       <div class="art-tags">${(v.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
       <button class="icon-btn fav" data-save="${v.id}" aria-pressed="false" aria-label="Add to saved">♡</button>
     </div>
@@ -168,7 +155,7 @@ function vehicleCard(v, { lazy = true } = {}) {
       <h3 class="v-name"><a href="#/vehicle/${v.id}">${esc(v.model)}</a></h3>
       <div class="v-meta">
         <span class="rating-badge">★ ${v.rating ? v.rating.toFixed(1) : "New"}</span>
-        <span>${fmtCount(v.reviews?.length || 0)} reviews</span>
+        <span>${fmtCount(v.reviewCount || 0)} reviews</span>
         <span>${esc(v.fuel)}</span><span>${esc(v.power)}</span>
         ${v.transmission ? `<span>${esc(v.transmission)}</span>` : ""}
       </div>
@@ -182,18 +169,8 @@ function vehicleCard(v, { lazy = true } = {}) {
     </div></article>`;
 }
 
-/* lazily inject SVG art when card scrolls into view (below-the-fold budget) */
-let artObserver = null;
-function activateLazyArt(root = document) {
-  const slots = $$("[data-lazy-art]", root);
-  const inject = (el) => { const v = VEHICLES.find(x => x.id === el.dataset.lazyArt); if (v) el.outerHTML = vehicleArt(v); };
-  if (!("IntersectionObserver" in window)) { document.body.classList.add("no-io"); slots.forEach(inject); return; }
-  artObserver?.disconnect();
-  artObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { artObserver.unobserve(e.target); inject(e.target); } });
-  }, { rootMargin: "300px" });
-  slots.forEach(el => artObserver.observe(el));
-}
+/* Below-the-fold images use native loading="lazy"; no JS observer needed. */
+function activateLazyArt() { /* retained as a no-op hook */ }
 let revealObserver = null;
 function activateReveal(root = document) {
   const items = $$(".reveal", root);
@@ -266,9 +243,13 @@ function route() {
 function topSearched(type, n = 6) { return VEHICLES.filter(v => v.type === type).sort((a, b) => b.searches - a.searches).slice(0, n); }
 function topCostliest(type, n = 10) { return VEHICLES.filter(v => v.type === type && v.price != null).sort((a, b) => b.price - a.price).slice(0, n); }
 
-function renderHome() {
-  const totalReviews = VEHICLES.reduce((s, v) => s + (v.reviews?.length || 0), 0);
-  const latestReviews = VEHICLES.flatMap(v => (v.reviews || []).map(r => ({ ...r, vehicle: v }))).sort((a, b) => b.helpful - a.helpful).slice(0, 3);
+async function renderHome() {
+  const totalReviews = VEHICLES.reduce((s, v) => s + (v.reviewCount || 0), 0);
+  let latestReviews = [];
+  try { latestReviews = (await fetchLatestReviews(3)); } catch { /* section renders empty state */ }
+  if (parseHash().page !== "home") return;   /* user navigated away during fetch */
+  const heroCar = topSearched("car", 1)[0];
+  const heroBike = topSearched("bike", 1)[0];
 
   outlet().innerHTML = `
   <section class="hero">
@@ -305,8 +286,8 @@ function renderHome() {
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
-        ${vehicleArt(VEHICLES.find(v => v.id === "stratos-veloce-rs"), 0)}
-        <div style="max-width:70%;margin:-20px 0 0 auto">${vehicleArt(VEHICLES.find(v => v.id === "ryujin-katana-rr"), 1)}</div>
+        ${heroCar ? vehicleArt(heroCar, 0, { eager: true }) : ""}
+        <div style="max-width:70%;margin:-20px 0 0 auto">${heroBike ? vehicleArt(heroBike, 1, { eager: true }) : ""}</div>
       </div>
     </div>
   </section>
@@ -360,17 +341,17 @@ function renderHome() {
       <div><span class="kicker">Driver Intelligence</span><h2 id="rvHead">Latest owner stories</h2></div>
       <a class="btn btn-ghost btn-sm" href="#/reviews">All reviews →</a>
     </div>
-    <div class="v-grid">${latestReviews.map(r => `
+    <div class="v-grid">${latestReviews.length ? latestReviews.map(r => `
       <article class="card review-card reveal">
         <div class="review-head">
           <span class="avatar" aria-hidden="true">${esc(r.author[0])}</span>
           <div><b>${esc(r.author)}</b> ${r.verified ? `<span class="tag" style="font-size:.6rem">Verified owner</span>` : ""}
-            <div class="muted" style="font-size:.78rem">${esc(r.vehicle.brand)} ${esc(r.vehicle.model)}</div></div>
+            <div class="muted" style="font-size:.78rem">${esc(r.productBrand)} ${esc(r.productModel)}</div></div>
           <span class="rating-badge" style="margin-left:auto">★ ${r.rating}</span>
         </div>
         <div class="review-body"><b>${esc(r.title)}</b><p class="muted" style="font-size:.9rem">${esc(r.content)}</p></div>
-        <a href="#/vehicle/${r.vehicle.id}" class="btn btn-ghost btn-sm">Read on ${esc(r.vehicle.model)} →</a>
-      </article>`).join("")}
+        <a href="#/vehicle/${r.productId}" class="btn btn-ghost btn-sm">Read on ${esc(r.productModel)} →</a>
+      </article>`).join("") : `<p class="muted">Reviews are loading from the API…</p>`}
     </div>
   </section>
 
@@ -734,10 +715,27 @@ function openFilterDrawer(f) {
 const SPEC_TIPS = { "Torque": "Rotational force — how hard the vehicle pulls.", "ADAS": "Advanced Driver Assistance Systems: adaptive cruise, lane keeping, AEB.", "ABS": "Anti-lock Braking System — prevents wheel lock under hard braking.", "Kerb weight": "Weight of the vehicle with all fluids, ready to ride/drive." };
 function specCell(k) { return SPEC_TIPS[k] ? `<abbr title="${esc(SPEC_TIPS[k])}">${esc(k)}</abbr>` : esc(k); }
 
-function renderVehicle(id) {
-  const v = VEHICLES.find(x => x.id === id);
-  if (!v) { renderNotFound(); return; }
-  const galleryLabels = ["Front quarter", "Side profile", "Rear quarter", "Detail"];
+async function renderVehicle(id) {
+  /* full detail (specs/variants/reviews/colours) comes from the API; cached per slug */
+  let v = detailCache.get(id);
+  if (!v) {
+    try {
+      const d = await fetchProduct(id);
+      v = { ...d.summary, colors: d.colors, variants: d.variants, specs: d.specs,
+            pros: d.pros, cons: d.cons, reviews: d.reviews, imageLabels: d.imageLabels };
+      detailCache.set(id, v);
+      if (parseHash().arg !== id) return;   /* user navigated away during fetch */
+    } catch (err) {
+      if (err.status === 404) { renderNotFound(); return; }
+      outlet().innerHTML = `<div class="wrap"><div class="empty-state panel" style="margin:40px auto;max-width:560px">
+        <div class="glyph">📡</div><h2>Couldn't reach the catalog API</h2>
+        <p class="muted">${esc(API_BASE)} did not respond. Is the backend running?</p>
+        <a class="btn btn-primary" href="#/vehicle/${esc(id)}" onclick="location.reload()">Retry</a></div></div>`;
+      return;
+    }
+  }
+  const galleryLabels = (v.imageLabels && v.imageLabels.length)
+      ? v.imageLabels : ["Front quarter", "Side profile", "Rear quarter", "Studio detail"];
   const similar = VEHICLES.filter(x => x.type === v.type && x.id !== v.id && (x.category === v.category || Math.abs((x.price ?? 0) - (v.price ?? 0)) < (v.price ?? 1) * .4)).slice(0, 3);
   const reviews = v.reviews || [];
   const dist = [5, 4, 3, 2, 1].map(s => reviews.filter(r => Math.round(r.rating) === s).length);
@@ -755,9 +753,9 @@ function renderVehicle(id) {
       <div>
         <div class="gallery-main" id="galleryMain" tabindex="0" role="group" aria-roledescription="image gallery"
              aria-label="${esc(v.model)} gallery — use left and right arrow keys">${vehicleArt(v, 0, { label: galleryLabels[0] })}</div>
-        <div class="gallery-thumbs" role="tablist" aria-label="Gallery angles">
-          ${galleryLabels.map((l, i) => `<button role="tab" data-gal="${i}" aria-current="${i === 0}" aria-label="${l}">${vehicleArt(v, i)}</button>`).join("")}
-        </div>
+        ${(v.imageCount ?? 0) > 1 ? `<div class="gallery-thumbs" role="tablist" aria-label="Gallery angles">
+          ${galleryLabels.slice(0, v.imageCount).map((l, i) => `<button role="tab" data-gal="${i}" aria-current="${i === 0}" aria-label="${l}">${vehicleArt(v, i)}</button>`).join("")}
+        </div>` : ""}
       </div>
       <div>
         <span class="v-brand" style="color:var(--ink-muted)">${esc(v.brand)} · ${esc(catLabel(v.type, v.category))} ${v.availability !== "New" ? `· <span class="tag gold">${esc(v.availability)}</span>` : ""}</span>
@@ -1044,19 +1042,22 @@ function renderSaved() {
 }
 
 /* ---------------------------- REVIEWS HUB --------------------------------- */
-function renderReviewsHub() {
-  const all = VEHICLES.flatMap(v => (v.reviews || []).map(r => ({ ...r, vehicle: v }))).sort((a, b) => b.helpful - a.helpful);
+async function renderReviewsHub() {
+  let all = [];
+  try { all = await fetchLatestReviews(50); } catch { /* fall through to empty state */ }
   outlet().innerHTML = `<div class="wrap section">
     <div class="section-head"><div><span class="kicker">Driver Intelligence</span><h1 style="font-size:1.6rem;margin:0">Community reviews</h1></div></div>
-    <div class="v-grid">${all.map(r => `
+    ${all.length ? `<div class="v-grid">${all.map(r => `
       <article class="card review-card reveal">
         <div class="review-head"><span class="avatar" aria-hidden="true">${esc(r.author[0])}</span>
           <div><b>${esc(r.author)}</b>${r.verified ? ` <span class="tag" style="font-size:.6rem">Verified</span>` : ""}
-            <div class="muted" style="font-size:.78rem">${esc(r.vehicle.brand)} ${esc(r.vehicle.model)}</div></div>
+            <div class="muted" style="font-size:.78rem">${esc(r.productBrand)} ${esc(r.productModel)}</div></div>
           <span class="rating-badge" style="margin-left:auto">★ ${r.rating}</span></div>
         <div class="review-body"><b>${esc(r.title)}</b><p class="muted" style="font-size:.9rem">${esc(r.content)}</p></div>
-        <a class="btn btn-ghost btn-sm" href="#/vehicle/${r.vehicle.id}">View ${esc(r.vehicle.model)} →</a>
-      </article>`).join("")}</div></div>`;
+        <a class="btn btn-ghost btn-sm" href="#/vehicle/${r.productId}">View ${esc(r.productModel)} →</a>
+      </article>`).join("")}</div>`
+      : `<div class="empty-state panel"><div class="glyph">📡</div><h2>No reviews available</h2>
+         <p class="muted">The review feed from ${esc(API_BASE)} is empty or unreachable.</p></div>`}</div>`;
 }
 
 function renderNotFound() {
@@ -1115,6 +1116,29 @@ function boot() {
 
   window.addEventListener("hashchange", route);
   if (!location.hash) location.hash = "#/home";
-  route();
+  loadCatalog();
+}
+
+/** Loads the live catalog from the Spring Boot API (no mock data). */
+async function loadCatalog() {
+  outlet().innerHTML = skeletons(6);
+  try {
+    VEHICLES = await fetchProducts();
+    BRANDS = [...new Set(VEHICLES.map(v => v.brand))].map(b => ({
+      name: b,
+      count: VEHICLES.filter(v => v.brand === b).length,
+      types: [...new Set(VEHICLES.filter(v => v.brand === b).map(v => v.type))],
+    }));
+    route();
+  } catch (err) {
+    console.error("Catalog load failed", err);
+    outlet().innerHTML = `<div class="wrap"><div class="empty-state panel" style="margin:48px auto;max-width:620px">
+      <div class="glyph">📡</div><h1 style="font-size:1.5rem">Can't reach the catalog API</h1>
+      <p class="muted">MOTORA is fully API-driven — it needs the AutoHub backend at
+        <b>${esc(API_BASE)}</b>.<br>Start it with:
+        <code>java -jar backend/target/autohub-backend-0.1.0-SNAPSHOT.jar --spring.profiles.active=local --server.port=18080</code></p>
+      <button class="btn btn-primary" id="retryLoad">Retry</button></div></div>`;
+    $("#retryLoad")?.addEventListener("click", loadCatalog);
+  }
 }
 document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", boot) : boot();
