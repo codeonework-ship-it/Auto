@@ -1,5 +1,8 @@
 package com.autohub.marketplace.application;
 
+import com.autohub.kyc.domain.model.KycStatus;
+import com.autohub.kyc.domain.model.KycType;
+import com.autohub.kyc.infrastructure.persistence.KycProfileJpaRepository;
 import com.autohub.marketplace.domain.event.ListingCreatedEvent;
 import com.autohub.marketplace.domain.model.ListingStatus;
 import com.autohub.marketplace.infrastructure.persistence.ListingEntity;
@@ -28,13 +31,15 @@ import java.util.UUID;
 public class ListingService {
 
     private final ListingJpaRepository listings;
+    private final KycProfileJpaRepository kycProfiles;
     private final HtmlSanitizer sanitizer;
     private final CurrentUser currentUser;
     private final DomainEventPublisher events;
 
-    public ListingService(ListingJpaRepository listings, HtmlSanitizer sanitizer,
-                          CurrentUser currentUser, DomainEventPublisher events) {
+    public ListingService(ListingJpaRepository listings, KycProfileJpaRepository kycProfiles,
+                          HtmlSanitizer sanitizer, CurrentUser currentUser, DomainEventPublisher events) {
         this.listings = listings;
+        this.kycProfiles = kycProfiles;
         this.sanitizer = sanitizer;
         this.currentUser = currentUser;
         this.events = events;
@@ -45,6 +50,7 @@ public class ListingService {
     @Transactional
     public ListingEntity create(CreateListingRequest req) {
         UUID sellerId = currentUser.requireUserId();
+        requireApprovedSellerKyc(sellerId);
         ListingEntity listing = new ListingEntity(
                 UUID.randomUUID(), sellerId, parseUuid(req.postId()), req.title().trim(),
                 sanitizer.sanitize(req.descriptionHtml()), req.priceAmount(),
@@ -95,6 +101,11 @@ public class ListingService {
     }
 
     @Transactional(readOnly = true)
+    public List<ListingEntity> listPending() {
+        return listings.findByStatusOrderByCreatedAtAsc(ListingStatus.PENDING_REVIEW.name());
+    }
+
+    @Transactional(readOnly = true)
     public List<ListingEntity> listMine() {
         return listings.findBySellerIdOrderByUpdatedAtDesc(currentUser.requireUserId());
     }
@@ -112,6 +123,21 @@ public class ListingService {
 
     ListingEntity require(UUID id) {
         return listings.findById(id).orElseThrow(() -> new NotFoundException("Listing not found: " + id));
+    }
+
+    /**
+     * Enforces the seller-KYC gate: the current seller must hold a KYC profile of type
+     * {@code SELLER} with status {@code APPROVED} before a listing can be created. The kyc repo is
+     * read-only from here; we fetch the user's profiles and filter in-memory to avoid coupling to
+     * kyc-service query methods.
+     */
+    private void requireApprovedSellerKyc(UUID sellerId) {
+        boolean approved = kycProfiles.findByUserId(sellerId).stream()
+                .anyMatch(p -> KycType.SELLER.name().equals(p.getKycType())
+                        && KycStatus.APPROVED.name().equals(p.getStatus()));
+        if (!approved) {
+            throw new AccessDeniedException("Seller KYC must be APPROVED before creating a listing.");
+        }
     }
 
     private void assertCanModify(ListingEntity listing) {

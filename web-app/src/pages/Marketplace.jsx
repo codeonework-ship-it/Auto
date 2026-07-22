@@ -84,7 +84,8 @@ export default function Marketplace() {
       {isAuthenticated && (
         <Card className="ah-card border-0 mb-4">
           <Card.Body>
-            <h5 className="fw-bold mb-3">Sell an item</h5>
+            <h5 className="fw-bold mb-1">Sell an item</h5>
+            <p className="ah-muted small mb-3">Seller KYC (APPROVED) is required to list.</p>
             {error && <Alert variant="danger" className="py-2">{error}</Alert>}
             {notice && <Alert variant="success" className="py-2">{notice}</Alert>}
             <Form onSubmit={onSubmit}>

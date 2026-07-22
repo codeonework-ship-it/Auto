@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/posts/mine",
                                 "/api/v1/marketplace/listings/mine",
+                                "/api/v1/marketplace/listings/pending",
                                 "/api/v1/marketplace/listings/*/offers",
                                 "/api/v1/travel/posts/mine",
                                 "/api/v1/community/groups/mine",

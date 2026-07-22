@@ -56,6 +56,12 @@ public class ListingController {
         return ApiResponse.ok(listingService.listMine().stream().map(ListingSummaryResponse::of).toList());
     }
 
+    @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('listing:approve')")
+    public ApiResponse<List<ListingSummaryResponse>> pending() {
+        return ApiResponse.ok(listingService.listPending().stream().map(ListingSummaryResponse::of).toList());
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<ListingResponse> detail(@PathVariable UUID id) {
         return ApiResponse.ok(ListingResponse.from(listingService.getVisible(id)));

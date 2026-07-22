@@ -26,4 +26,7 @@ public interface UserRepository {
      */
     User createWithRole(String email, String username, String passwordHash,
                         String displayName, String roleCode);
+
+    /** Replaces the stored password hash for the given user. */
+    void updatePassword(UUID userId, String newPasswordHash);
 }

@@ -61,6 +61,14 @@ public class UserRepositoryAdapter implements UserRepository {
         return toDomain(userJpa.save(entity));
     }
 
+    @Override
+    public void updatePassword(UUID userId, String newPasswordHash) {
+        UserEntity entity = userJpa.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        entity.setPasswordHash(newPasswordHash);
+        userJpa.save(entity);
+    }
+
     private User toDomain(UserEntity e) {
         Set<String> roleCodes = e.getRoles().stream()
                 .map(RoleEntity::getCode)

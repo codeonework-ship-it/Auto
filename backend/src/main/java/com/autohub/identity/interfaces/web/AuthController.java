@@ -2,7 +2,10 @@ package com.autohub.identity.interfaces.web;
 
 import com.autohub.identity.application.AuthService;
 import com.autohub.identity.interfaces.web.dto.AuthResponse;
+import com.autohub.identity.interfaces.web.dto.ChangePasswordRequest;
 import com.autohub.identity.interfaces.web.dto.LoginRequest;
+import com.autohub.identity.interfaces.web.dto.LogoutRequest;
+import com.autohub.identity.interfaces.web.dto.RefreshRequest;
 import com.autohub.identity.interfaces.web.dto.RegisterRequest;
 import com.autohub.identity.interfaces.web.dto.UserResponse;
 import com.autohub.shared.interfaces.web.ApiResponse;
@@ -42,6 +45,24 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         var tokens = authService.login(request.email(), request.password());
         return ResponseEntity.ok(ApiResponse.ok(AuthResponse.from(tokens)));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
+        var tokens = authService.refresh(request.refreshToken());
+        return ResponseEntity.ok(ApiResponse.ok(AuthResponse.from(tokens)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")

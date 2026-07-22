@@ -28,9 +28,9 @@ _Last updated: 2026-07-22_
 | S0 | US-007 | Docs set (product / architecture / agile / design) | Docs | ✅ Done | This tracker included |
 | S0 | US-008 | CI pipeline (lint + build + test) | CI | ✅ Done | Runs on every push |
 | S1 | US-101 | User signup | identity | ✅ Done | Emits `identity.user.registered` via Outbox; verified end-to-end |
-| S1 | US-102 | User login (JWT) + refresh | identity | 🔵 In-Progress | Login + JWT access/refresh issuance done & verified; `/auth/refresh` exchange endpoint pending |
-| S1 | US-103 | Logout / session invalidation | identity | 🔵 In-Progress | Stateless JWT — client clears token; server-side refresh-token revocation pending |
-| S1 | US-104 | Password policy & reset | identity | ⚪ Todo | BCrypt + min-length in place; reset flow pending |
+| S1 | US-102 | User login (JWT) + refresh | identity | ✅ Done | `/auth/refresh` rotating exchange (persisted + revocable, jti-unique); old token → 401; verified |
+| S1 | US-103 | Logout / session invalidation | identity | ✅ Done | `/auth/logout` revokes refresh token; change-password revokes all; verified |
+| S1 | US-104 | Password policy & change | identity | 🔵 In-Progress | `/auth/change-password` (verify current, revoke sessions) done & verified; email-based reset pending |
 | S1 | US-105 | Seed 8 fixed roles + permissions | identity / RBAC | ✅ Done | 8 roles, 21 permissions, mappings (Flyway V2 / local seeder) |
 | S1 | US-106 | RBAC enforcement (route + method guards) | RBAC | ✅ Done | JWT authorities + `@PreAuthorize`; 403 denials verified |
 | S1 | US-107 | User management (list, assign roles, status) | identity / control-panel | 🔵 In-Progress | Backend endpoints done & verified (roles/status lifecycle); control-panel UI wiring pending |
@@ -65,7 +65,7 @@ _Last updated: 2026-07-22_
 | Sprint | Stories | Done | In-Progress | Todo | Blocked | % Complete |
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 Foundation | 8 | 8 | 0 | 0 | 0 | **100%** |
-| S1 Identity & RBAC | 8 | 3 | 4 | 1 | 0 | ~65% |
+| S1 Identity & RBAC | 8 | 5 | 2 | 1 | 0 | ~80% |
 | S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
 | S3 Engagement & Moderation | 5 | 4 | 1 | 0 | 0 | ~90% |
 | S4 Marketplace & KYC | 6 | 6 | 0 | 0 | 0 | 100% (control-panel UI pending) |

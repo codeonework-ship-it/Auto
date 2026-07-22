@@ -78,6 +78,11 @@ public class UserEntity {
         this.updatedAt = Instant.now();
     }
 
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.updatedAt = Instant.now();
+    }
+
     public UUID getId() { return id; }
     public String getEmail() { return email; }
     public String getUsername() { return username; }

@@ -19,6 +19,7 @@ import Community from './pages/Community';
 import Profile from './pages/Profile';
 import Kyc from './pages/Kyc';
 import Search from './pages/Search';
+import Notifications from './pages/Notifications';
 import NotFound from './pages/NotFound';
 
 /*
@@ -77,6 +78,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Kyc />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Notifications */}
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />
