@@ -10,6 +10,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import Can from '../../components/Can';
 import mastersApi from '../../api/masters';
 import { getMaster } from './mastersConfig';
+import VehicleCatalogManager from './VehicleCatalogManager';
 
 // Generic CRUD screen that renders itself from a master's field config.
 export default function MasterCrud() {
@@ -58,8 +59,16 @@ export default function MasterCrud() {
     setShowForm(true);
   };
 
-  // The backend accepts only { name, active } — send exactly that.
-  const toPayload = (values) => ({ name: values.name, active: !!values.active });
+  // Build the payload from the master's configured fields so richer masters (e.g. the make
+  // "kind", city "country", currency "code") send every column the backend expects — not just
+  // { name, active }. Checkboxes are coerced to real booleans.
+  const toPayload = (values) => {
+    const payload = {};
+    (master?.fields ?? []).forEach((f) => {
+      payload[f.name] = f.type === 'checkbox' ? !!values[f.name] : values[f.name];
+    });
+    return payload;
+  };
 
   const onSubmit = async (values) => {
     setBusy(true);
@@ -131,6 +140,12 @@ export default function MasterCrud() {
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [master]);
+
+  // Vehicle makes are hierarchical (make -> model -> variant); a dedicated manager handles the
+  // drill-down. Rendered here (after all hooks) so hook order stays stable across master pages.
+  if (key === 'vehicle-makes') {
+    return <VehicleCatalogManager />;
+  }
 
   if (!master) {
     return (

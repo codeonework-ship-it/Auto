@@ -82,23 +82,25 @@ export const MASTERS = [
     fields: nameActive,
   },
 
-  // ---- backend pending (no generic-master endpoint yet) ----
+  // ---- vehicle catalog + geo masters (adminops dedicated controllers) ----
   {
     key: 'vehicle-makes',
     resource: 'vehicle-makes',
     label: 'Vehicle Make',
     plural: 'Vehicle Makes',
-    backed: false,
+    backed: true,
+    // Drill into a make's models (and each model's variants) from the row actions.
+    drillTo: 'models',
     fields: [
       { name: 'name', label: 'Make', type: 'text', required: true },
       {
-        name: 'category',
-        label: 'Category',
+        name: 'kind',
+        label: 'Kind',
         type: 'select',
-        options: ['car', 'bike'],
+        options: ['CAR', 'BIKE', 'BOTH'],
         required: true,
+        help: 'Which vehicle families this make covers.',
       },
-      { name: 'country', label: 'Country of Origin', type: 'text' },
       { name: 'active', label: 'Active', type: 'checkbox' },
     ],
   },
@@ -107,11 +109,13 @@ export const MASTERS = [
     resource: 'vehicle-models',
     label: 'Model',
     plural: 'Vehicle Models',
+    // Hierarchical (belongs to a make, then to variants) — managed by drilling into a make
+    // on the Vehicle Makes page rather than through the flat CRUD screen.
     backed: false,
+    help: 'Models are managed per make: open Vehicle Makes and use “Models” on a make row.',
     fields: [
       { name: 'name', label: 'Model', type: 'text', required: true },
       { name: 'makeId', label: 'Make', type: 'text', required: true, help: 'Parent make id' },
-      { name: 'year', label: 'Year', type: 'number' },
       { name: 'active', label: 'Active', type: 'checkbox' },
     ],
   },
@@ -121,6 +125,7 @@ export const MASTERS = [
     label: 'Variant',
     plural: 'Vehicle Variants',
     backed: false,
+    help: 'Variants are managed per model: drill Vehicle Makes → Models → Variants.',
     fields: [
       { name: 'name', label: 'Variant', type: 'text', required: true },
       { name: 'modelId', label: 'Model', type: 'text', required: true, help: 'Parent model id' },
@@ -132,11 +137,10 @@ export const MASTERS = [
     resource: 'cities',
     label: 'City',
     plural: 'Locations / Cities',
-    backed: false,
+    backed: true,
     fields: [
       { name: 'name', label: 'City', type: 'text', required: true },
-      { name: 'state', label: 'State/Province', type: 'text' },
-      { name: 'country', label: 'Country', type: 'text', required: true },
+      { name: 'country', label: 'Country', type: 'text', help: 'Part of the city’s unique key.' },
       { name: 'active', label: 'Active', type: 'checkbox' },
     ],
   },
@@ -145,11 +149,10 @@ export const MASTERS = [
     resource: 'currencies',
     label: 'Currency',
     plural: 'Currencies',
-    backed: false,
+    backed: true,
     fields: [
+      { name: 'code', label: 'ISO Code', type: 'text', required: true, help: 'Exactly 3 letters, e.g. USD, INR' },
       { name: 'name', label: 'Name', type: 'text', required: true },
-      { name: 'code', label: 'ISO Code', type: 'text', required: true, help: 'e.g. USD, INR' },
-      { name: 'symbol', label: 'Symbol', type: 'text' },
       { name: 'active', label: 'Active', type: 'checkbox' },
     ],
   },

@@ -33,22 +33,26 @@ public class ReviewController {
 
     @GetMapping("/posts/{postId}/reviews")
     public ApiResponse<List<ReviewResponse>> list(@PathVariable UUID postId) {
-        return ApiResponse.ok(reviewService.listVisible(postId).stream().map(ReviewResponse::from).toList());
+        return ApiResponse.ok(reviewService.listVisible(postId).stream()
+                .map(r -> ReviewResponse.from(r, reviewService.tagIds(r.getId())))
+                .toList());
     }
 
     @PostMapping("/posts/{postId}/reviews")
     @PreAuthorize("hasAuthority('review:create')")
     public ResponseEntity<ApiResponse<ReviewResponse>> add(@PathVariable UUID postId,
                                                            @Valid @RequestBody CreateReviewRequest request) {
+        var saved = reviewService.add(postId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(ReviewResponse.from(reviewService.add(postId, request))));
+                .body(ApiResponse.ok(ReviewResponse.from(saved, reviewService.tagIds(saved.getId()))));
     }
 
     @PutMapping("/reviews/{id}")
     @PreAuthorize("hasAuthority('review:create')")
     public ApiResponse<ReviewResponse> update(@PathVariable UUID id,
                                               @Valid @RequestBody CreateReviewRequest request) {
-        return ApiResponse.ok(ReviewResponse.from(reviewService.update(id, request)));
+        var saved = reviewService.update(id, request);
+        return ApiResponse.ok(ReviewResponse.from(saved, reviewService.tagIds(saved.getId())));
     }
 
     @DeleteMapping("/reviews/{id}")

@@ -8,6 +8,7 @@ import client from './client';
 const unwrap = (r) => r.data?.data ?? r.data;
 
 export const postsApi = {
+  // params: { kind, make, model } — all optional; make/model are UUID strings (server-side filters).
   list: (params) => client.get('/posts', { params }).then(unwrap),
   mine: () => client.get('/posts/mine').then(unwrap),
   get: (slug) => client.get(`/posts/${slug}`).then(unwrap),

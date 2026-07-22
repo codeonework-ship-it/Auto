@@ -37,11 +37,11 @@ _Last updated: 2026-07-22_
 | S1 | US-108 | Masters CRUD | adminops / control-panel | 🔵 In-Progress | Generic CRUD for 7 name+active masters done & verified; currencies/cities/make hierarchy + roles/permissions pending |
 | S2 | US-201 | Create car/bike post + rich text | catalog | ✅ Done | Jsoup-sanitized bodyHtml; publish emits `catalog.post.published`; verified |
 | S2 | US-202 | Edit / delete post | catalog | ✅ Done | Owner/moderator-gated update & delete; verified (PUT 200, DELETE 204→404) |
-| S2 | US-203 | Post list + detail + filters | catalog | 🔵 In-Progress | Public list + kind filter + detail-by-slug (drafts hidden) done; make/model attribute filters pending |
+| S2 | US-203 | Post list + detail + filters | catalog | ✅ Done | Public list, detail-by-slug (drafts hidden), and kind + make + model filters; verified |
 | S2 | US-204 | 20-image uploader | media | ✅ Done | multipart `files`, 20-cap enforced & verified |
 | S2 | US-205 | Image validation (type/size/resolution) | media | ✅ Done | JPEG/PNG/WEBP, ≤5 MB, ≥640×480; 400s with clear messages verified |
 | S2 | US-206 | Image gallery + web wiring | web-app / media | ✅ Done | Served via `/media/**`; feed cover + detail gallery render; emits `media.image.uploaded` |
-| S3 | US-301 | Add review (rating + body) | engagement | 🔵 In-Progress | 1/user/post enforced (409); sanitized; emits `engagement.review.added`; review-tag linkage pending |
+| S3 | US-301 | Add review (rating + tags) | engagement | ✅ Done | 1/user/post (409); sanitized; review-tag linkage (V5) with validation; emits `engagement.review.added`; verified |
 | S3 | US-302 | Comment on post (threaded) | engagement | ✅ Done | One-level threading (parentId); sanitized; verified |
 | S3 | US-303 | Edit / delete comment & review | engagement | ✅ Done | Owner-gated edit; owner-or-moderator delete; verified |
 | S3 | US-304 | Report content (report reasons) | moderation | ✅ Done | POST /reports (any member); subject POST/COMMENT/REVIEW/…; verified |
@@ -66,8 +66,8 @@ _Last updated: 2026-07-22_
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 Foundation | 8 | 8 | 0 | 0 | 0 | **100%** |
 | S1 Identity & RBAC | 8 | 5 | 2 | 1 | 0 | ~80% |
-| S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
-| S3 Engagement & Moderation | 5 | 4 | 1 | 0 | 0 | ~90% |
+| S2 Catalog & Media | 6 | 6 | 0 | 0 | 0 | 100% |
+| S3 Engagement & Moderation | 5 | 5 | 0 | 0 | 0 | 100% |
 | S4 Marketplace & KYC | 6 | 6 | 0 | 0 | 0 | 100% (control-panel UI pending) |
 | S5 Travel & Community | 5 | 4 | 1 | 0 | 0 | ~90% (Community + Discovery done) |
 | **Overall** | **38** | **8** | **0** | **30** | **0** | **~21%** |

@@ -17,7 +17,30 @@ export default function PostDetail() {
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState('');
+  const [tags, setTags] = useState([]);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
   const [error, setError] = useState('');
+
+  // Load the review-tag master once (public); ignore failures — tags are optional.
+  useEffect(() => {
+    let active = true;
+    engagementApi
+      .listTags()
+      .then((data) => active && setTags((data || []).filter((t) => t.active)))
+      .catch(() => active && setTags([]));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Look up a tag's display name from its id (falls back to the id if unknown).
+  const tagName = (id) => tags.find((t) => t.id === id)?.name || id;
+
+  function toggleTag(id) {
+    setSelectedTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  }
 
   // Load the post by slug first, then its reviews/comments by post id.
   useEffect(() => {
@@ -58,8 +81,13 @@ export default function PostDetail() {
     e.preventDefault();
     setError('');
     try {
-      await engagementApi.addReview(post.id, { rating: Number(rating), body: reviewBody });
+      await engagementApi.addReview(post.id, {
+        rating: Number(rating),
+        body: reviewBody,
+        tagIds: selectedTagIds,
+      });
       setReviewBody('');
+      setSelectedTagIds([]);
       const fresh = await engagementApi.listReviews(post.id);
       setReviews(fresh);
     } catch (err) {
@@ -144,6 +172,24 @@ export default function PostDetail() {
                     value={reviewBody}
                     onChange={(e) => setReviewBody(e.target.value)}
                   />
+                  {tags.length > 0 && (
+                    <div className="mt-2">
+                      <div className="small fw-semibold mb-1">Tags</div>
+                      <div className="d-flex flex-wrap gap-2">
+                        {tags.map((t) => (
+                          <Form.Check
+                            key={t.id}
+                            type="checkbox"
+                            id={`review-tag-${t.id}`}
+                            label={t.name}
+                            className="small"
+                            checked={selectedTagIds.includes(t.id)}
+                            onChange={() => toggleTag(t.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Button type="submit" variant="outline-primary" size="sm" className="mt-2">
                     Submit review
                   </Button>
@@ -158,6 +204,15 @@ export default function PostDetail() {
                     <li key={r.id} className="border-top py-2">
                       <div className="text-warning small">{'★'.repeat(r.rating)}<span className="ah-muted">{'★'.repeat(5 - r.rating)}</span></div>
                       <div className="small" dangerouslySetInnerHTML={{ __html: r.body || '' }} />
+                      {(r.tagIds || []).length > 0 && (
+                        <div className="d-flex flex-wrap gap-1 mt-1">
+                          {r.tagIds.map((id) => (
+                            <Badge key={id} bg="light" text="dark" className="fw-normal">
+                              {tagName(id)}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

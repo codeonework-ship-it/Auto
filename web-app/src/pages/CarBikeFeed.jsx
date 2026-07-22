@@ -11,21 +11,30 @@ const PLACEHOLDER_IMG = 'https://placehold.co/640x480?text=AutoHub';
 export default function CarBikeFeed() {
   const [posts, setPosts] = useState(null);
   const [filter, setFilter] = useState('ALL');
+  const [search, setSearch] = useState('');
 
+  // Kind filter is applied server-side (re-queries the API). The optional make/model
+  // filters are supported by the API (postsApi.list({ kind, make, model })) for future use.
   useEffect(() => {
     let active = true;
+    setPosts(null);
+    const params = filter === 'ALL' ? undefined : { kind: filter };
     postsApi
-      .list()
+      .list(params)
       .then((data) => active && setPosts(Array.isArray(data) ? data : []))
       .catch(() => active && setPosts([]));
     return () => {
       active = false;
     };
-  }, []);
+  }, [filter]);
 
   if (posts === null) return <Loader label="Loading posts…" />;
 
-  const visible = filter === 'ALL' ? posts : posts.filter((p) => p.kind === filter);
+  // Free-text search filters the already-loaded posts by title, client-side.
+  const term = search.trim().toLowerCase();
+  const visible = term
+    ? posts.filter((p) => (p.title || '').toLowerCase().includes(term))
+    : posts;
 
   return (
     <Container className="py-4">
@@ -34,7 +43,15 @@ export default function CarBikeFeed() {
           <h2 className="fw-bold mb-0">Cars &amp; Bikes</h2>
           <p className="ah-muted mb-0">Community posts, reviews, and ownership stories.</p>
         </div>
-        <div className="d-flex gap-2 align-items-center">
+        <div className="d-flex gap-2 align-items-center flex-wrap">
+          <Form.Control
+            size="sm"
+            type="search"
+            placeholder="Search by title…"
+            style={{ width: 180 }}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <Form.Select
             size="sm"
             style={{ width: 140 }}

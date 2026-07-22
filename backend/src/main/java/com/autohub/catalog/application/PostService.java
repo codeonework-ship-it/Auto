@@ -142,11 +142,37 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostEntity> listPublished(String kind) {
-        if (kind == null || kind.isBlank()) {
-            return posts.findByStatusOrderByPublishedAtDesc(PostStatus.PUBLISHED.name());
+        return listPublished(kind, null, null);
+    }
+
+    /**
+     * Lists published posts, optionally narrowed by kind, make and model. All filters are optional;
+     * make/model are UUID strings. Make (and make+model) are filtered in the database; a model-only
+     * filter (no make) is applied in-memory since it is a rare combination.
+     */
+    @Transactional(readOnly = true)
+    public List<PostEntity> listPublished(String kind, String makeId, String modelId) {
+        String status = PostStatus.PUBLISHED.name();
+        String normKind = (kind == null || kind.isBlank()) ? null : kind.toUpperCase(Locale.ROOT);
+        UUID make = parseUuid(makeId);
+        UUID model = parseUuid(modelId);
+
+        if (make != null && model != null) {
+            return normKind == null
+                    ? posts.findByStatusAndMakeIdAndModelIdOrderByPublishedAtDesc(status, make, model)
+                    : posts.findByStatusAndKindAndMakeIdAndModelIdOrderByPublishedAtDesc(status, normKind, make, model);
         }
-        return posts.findByStatusAndKindOrderByPublishedAtDesc(
-                PostStatus.PUBLISHED.name(), kind.toUpperCase(Locale.ROOT));
+        if (make != null) {
+            return normKind == null
+                    ? posts.findByStatusAndMakeIdOrderByPublishedAtDesc(status, make)
+                    : posts.findByStatusAndKindAndMakeIdOrderByPublishedAtDesc(status, normKind, make);
+        }
+        List<PostEntity> base = normKind == null
+                ? posts.findByStatusOrderByPublishedAtDesc(status)
+                : posts.findByStatusAndKindOrderByPublishedAtDesc(status, normKind);
+        return model == null
+                ? base
+                : base.stream().filter(p -> model.equals(p.getModelId())).toList();
     }
 
     @Transactional(readOnly = true)

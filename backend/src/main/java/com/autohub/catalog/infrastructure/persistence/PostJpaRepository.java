@@ -16,5 +16,15 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, UUID> {
 
     List<PostEntity> findByStatusAndKindOrderByPublishedAtDesc(String status, String kind);
 
+    // Feed filters: narrow published posts by make (optionally within a kind) and by make+model.
+    List<PostEntity> findByStatusAndMakeIdOrderByPublishedAtDesc(String status, UUID makeId);
+
+    List<PostEntity> findByStatusAndKindAndMakeIdOrderByPublishedAtDesc(String status, String kind, UUID makeId);
+
+    List<PostEntity> findByStatusAndMakeIdAndModelIdOrderByPublishedAtDesc(String status, UUID makeId, UUID modelId);
+
+    List<PostEntity> findByStatusAndKindAndMakeIdAndModelIdOrderByPublishedAtDesc(
+            String status, String kind, UUID makeId, UUID modelId);
+
     List<PostEntity> findByAuthorIdOrderByUpdatedAtDesc(UUID authorId);
 }

@@ -9,6 +9,9 @@ const unwrap = (r) => r.data?.data ?? r.data;
 
 export const engagementApi = {
   listReviews: (postId) => client.get(`/posts/${postId}/reviews`).then(unwrap),
+  // Public review-tag master (id, name, active) — used to tag a review.
+  listTags: () => client.get('/masters/review-tags').then(unwrap),
+  // payload: { rating, body, tagIds?: string[] }
   addReview: (postId, payload) => client.post(`/posts/${postId}/reviews`, payload).then(unwrap),
   listComments: (postId) => client.get(`/posts/${postId}/comments`).then(unwrap),
   addComment: (postId, payload) => client.post(`/posts/${postId}/comments`, payload).then(unwrap),

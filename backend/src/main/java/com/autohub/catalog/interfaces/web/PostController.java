@@ -44,8 +44,12 @@ public class PostController {
     // ---- reads ----
 
     @GetMapping
-    public ApiResponse<List<PostSummaryResponse>> list(@RequestParam(required = false) String kind) {
-        return ApiResponse.ok(postService.listPublished(kind).stream().map(this::toSummary).toList());
+    public ApiResponse<List<PostSummaryResponse>> list(
+            @RequestParam(required = false) String kind,
+            @RequestParam(required = false) String make,
+            @RequestParam(required = false) String model) {
+        return ApiResponse.ok(
+                postService.listPublished(kind, make, model).stream().map(this::toSummary).toList());
     }
 
     @GetMapping("/mine")
