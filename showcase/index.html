@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight" data-motion="on" data-immersive="off">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MOTORA — discover, compare and choose cars & bikes. Real specifications, verified owner reviews, honest comparisons.">
+  <meta name="color-scheme" content="dark light">
+  <title>MOTORA — Find your next machine</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <a class="skip-link" href="#app">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap hdr">
+      <a class="brand" href="#/home" aria-label="MOTORA home">
+        <span class="logo-mark" aria-hidden="true">🏁</span>
+        <span>MOTORA<small>FIND YOUR NEXT MACHINE</small></span>
+      </a>
+
+      <button id="navToggle" class="icon-btn nav-toggle" aria-expanded="false" aria-controls="mainNav" aria-label="Open menu">☰</button>
+
+      <nav id="mainNav" class="main-nav" aria-label="Primary">
+        <a href="#/home">Home</a>
+        <a href="#/listings?type=car">Cars</a>
+        <a href="#/listings?type=bike">Bikes</a>
+        <a href="#/compare">Compare</a>
+        <a href="#/reviews">Reviews</a>
+        <a href="#/saved">Saved</a>
+      </nav>
+
+      <div class="hdr-actions">
+        <label style="position:absolute;left:-9999px" for="themeSelect">Theme</label>
+        <select id="themeSelect" class="theme-select" aria-label="Choose visual theme"></select>
+        <button id="motionBtn" class="icon-btn" aria-pressed="false" aria-label="Reduce motion" title="Reduce motion">🐢</button>
+        <button id="immersiveBtn" class="icon-btn" aria-pressed="false" aria-label="Immersive motion (Mech Command)" title="Immersive motion" hidden>✨</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1"><!-- routed content --></main>
+
+  <div id="compareTray" class="compare-tray" hidden aria-label="Compare selection"></div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a class="brand" href="#/home" style="font-size:1rem"><span class="logo-mark" aria-hidden="true">🏁</span><span>MOTORA</span></a>
+          <p class="muted" style="max-width:30ch">Precision in every specification. Built for the road ahead.</p>
+        </div>
+        <div><h4>Discover</h4><ul>
+          <li><a href="#/listings?type=car">All cars</a></li>
+          <li><a href="#/listings?type=bike">All bikes</a></li>
+          <li><a href="#/listings?fuel=Electric">Electric vehicles</a></li>
+          <li><a href="#/compare">Compare</a></li></ul></div>
+        <div><h4>Community</h4><ul>
+          <li><a href="#/reviews">Owner reviews</a></li>
+          <li><a href="#/saved">Your garage</a></li></ul></div>
+        <div><h4>Support</h4><ul>
+          <li><a href="#/home" aria-disabled="true">Help centre</a></li>
+          <li><a href="#/home" aria-disabled="true">Contact us</a></li>
+          <li><a href="#/home" aria-disabled="true">Report a listing</a></li></ul></div>
+        <div><h4>Legal</h4><ul>
+          <li><a href="#/home" aria-disabled="true">Privacy</a></li>
+          <li><a href="#/home" aria-disabled="true">Terms</a></li>
+          <li><a href="#/home" aria-disabled="true">Cookie policy</a></li></ul></div>
+      </div>
+      <div class="footer-base">
+        <span>© 2026 MOTORA (demo). All vehicles, brands and reviews are fictional.</span>
+        <span>Made fast: no trackers · no heavy images · WCAG AA</span>
+      </div>
+    </div>
+  </footer>
+
+  <noscript>
+    <div style="max-width:680px;margin:40px auto;padding:24px;border:2px solid currentColor;border-radius:12px;font-family:system-ui">
+      <h1>MOTORA needs JavaScript</h1>
+      <p>This interactive catalog requires JavaScript for search, filters and comparisons.
+      Please enable JavaScript, or contact us for a printed catalogue of our cars and bikes.</p>
+    </div>
+  </noscript>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

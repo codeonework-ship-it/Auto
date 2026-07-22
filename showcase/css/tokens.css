@@ -1,0 +1,197 @@
+/* ============================================================================
+   MOTORA — Theme token system
+   Every theme is a pure CSS-custom-property swap on <html data-theme="...">.
+   Switching themes never changes layout — only paint — so it is instant and
+   causes zero layout shift. All themes hold WCAG AA contrast for text/controls.
+   ============================================================================ */
+
+:root {
+  /* type scale + layout tokens (theme-independent) */
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --maxw: 1240px;
+  --speed: 220ms;
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --shadow-1: 0 2px 10px rgba(8, 15, 30, .10);
+  --shadow-2: 0 10px 30px rgba(8, 15, 30, .18);
+}
+
+/* ---------------------------------------------------------------------------
+   1) MIDNIGHT BLUE + WARM CREAM  (default) — deep navy canvas, cream surfaces
+--------------------------------------------------------------------------- */
+:root, [data-theme="midnight"] {
+  --bg: #0e1b30;
+  --bg-2: #13233d;
+  --ink: #f3ecdc;             /* text on page background   */
+  --ink-muted: #b3bfd2;
+  --surface: #f7f1e3;         /* card background            */
+  --surface-2: #efe6d2;
+  --card-ink: #18243a;        /* text on cards              */
+  --card-muted: #5a6478;
+  --accent: #2f7df6;          /* electric blue              */
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(47, 125, 246, .14);
+  --gold: #b98a2e;
+  --pos: #1c7d4d;
+  --neg: #b3362e;
+  --border: rgba(24, 36, 58, .16);
+  --border-strong: rgba(24, 36, 58, .34);
+  --hero: linear-gradient(135deg, #10233f 0%, #0e1b30 55%, #1b3157 100%);
+  --chip-bg: rgba(243, 236, 220, .10);
+  --chip-ink: #e9e1cd;
+  --focus: #7fb2ff;
+  --panel-line: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   2) ARCTIC VELOCITY — bright, clean blue-and-white EV theme
+--------------------------------------------------------------------------- */
+[data-theme="arctic"] {
+  --bg: #eef4fb;
+  --bg-2: #e2ecf8;
+  --ink: #0f2340;
+  --ink-muted: #47566e;
+  --surface: #ffffff;
+  --surface-2: #f2f7fd;
+  --card-ink: #0f2340;
+  --card-muted: #51607a;
+  --accent: #0b63cf;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(11, 99, 207, .10);
+  --gold: #9a7714;
+  --pos: #17724a;
+  --neg: #b23530;
+  --border: rgba(15, 35, 64, .14);
+  --border-strong: rgba(15, 35, 64, .30);
+  --hero: linear-gradient(135deg, #dcebfb 0%, #eef4fb 50%, #cfe2f7 100%);
+  --chip-bg: rgba(11, 99, 207, .08);
+  --chip-ink: #0f2340;
+  --focus: #0b63cf;
+  --panel-line: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   3) CARBON PERFORMANCE — gunmetal, chrome, subtle cyan
+--------------------------------------------------------------------------- */
+[data-theme="carbon"] {
+  --bg: #0f1216;
+  --bg-2: #14181e;
+  --ink: #e8ecf1;
+  --ink-muted: #9aa5b1;
+  --surface: #1a1f26;
+  --surface-2: #212831;
+  --card-ink: #e8ecf1;
+  --card-muted: #98a3b0;
+  --accent: #3ec6da;
+  --accent-ink: #06272d;
+  --accent-soft: rgba(62, 198, 218, .12);
+  --gold: #d3b45c;
+  --pos: #4cc38a;
+  --neg: #e5645c;
+  --border: rgba(232, 236, 241, .12);
+  --border-strong: rgba(232, 236, 241, .28);
+  --hero: linear-gradient(135deg, #14181e 0%, #0f1216 55%, #1d242e 100%);
+  --chip-bg: rgba(232, 236, 241, .08);
+  --chip-ink: #dfe5eb;
+  --focus: #7adfef;
+  --panel-line: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   4) SUNSET SPORT — warm cream, burgundy, amber, midnight blue
+--------------------------------------------------------------------------- */
+[data-theme="sunset"] {
+  --bg: #f9efdd;
+  --bg-2: #f3e5cc;
+  --ink: #33222a;
+  --ink-muted: #6d5a55;
+  --surface: #fffaf0;
+  --surface-2: #f7ecda;
+  --card-ink: #33222a;
+  --card-muted: #6d5a55;
+  --accent: #8c2332;          /* burgundy */
+  --accent-ink: #fff6ea;
+  --accent-soft: rgba(140, 35, 50, .10);
+  --gold: #b26a10;
+  --pos: #256d43;
+  --neg: #a33227;
+  --border: rgba(51, 34, 42, .16);
+  --border-strong: rgba(51, 34, 42, .34);
+  --hero: linear-gradient(135deg, #f6e7cd 0%, #f9efdd 45%, #eecfa4 100%);
+  --chip-bg: rgba(140, 35, 50, .08);
+  --chip-ink: #4d2e37;
+  --focus: #8c2332;
+  --panel-line: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   5) MECH COMMAND — original cinematic machine/tactical-console theme.
+   Panel lines + precision grid are lightweight CSS gradients (no images).
+--------------------------------------------------------------------------- */
+[data-theme="mech"] {
+  --bg: #0a1220;
+  --bg-2: #0d1728;
+  --ink: #d9e4f4;
+  --ink-muted: #8fa2bd;
+  --surface: #101c30;
+  --surface-2: #15233b;
+  --card-ink: #e6eefb;
+  --card-muted: #94a7c2;
+  --accent: #27d3f5;          /* electric cyan */
+  --accent-ink: #04222b;
+  --accent-soft: rgba(39, 211, 245, .12);
+  --gold: #f5b04c;            /* restrained amber */
+  --pos: #3fd68f;
+  --neg: #ff6b62;
+  --border: rgba(39, 211, 245, .22);
+  --border-strong: rgba(39, 211, 245, .48);
+  --hero: linear-gradient(135deg, #0d1a30 0%, #0a1220 60%, #10253f 100%);
+  --chip-bg: rgba(39, 211, 245, .10);
+  --chip-ink: #bfeefb;
+  --focus: #27d3f5;
+  /* precision grid drawn with two 1px repeating gradients */
+  --panel-line: rgba(39, 211, 245, .05);
+}
+[data-theme="mech"] body {
+  background-image:
+    repeating-linear-gradient(0deg, var(--panel-line) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, var(--panel-line) 0 1px, transparent 1px 44px);
+}
+[data-theme="mech"] .card,
+[data-theme="mech"] .panel {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  border-radius: 0;
+}
+[data-theme="mech"] .rank-num { font-family: "Consolas", "SFMono-Regular", monospace; }
+
+/* ---------------------------------------------------------------------------
+   6) HIGH CONTRAST — accessibility-first
+--------------------------------------------------------------------------- */
+[data-theme="contrast"] {
+  --bg: #000000;
+  --bg-2: #000000;
+  --ink: #ffffff;
+  --ink-muted: #e8e8e8;
+  --surface: #000000;
+  --surface-2: #101010;
+  --card-ink: #ffffff;
+  --card-muted: #e0e0e0;
+  --accent: #ffd500;
+  --accent-ink: #000000;
+  --accent-soft: rgba(255, 213, 0, .18);
+  --gold: #ffd500;
+  --pos: #6ef1a5;
+  --neg: #ff8f88;
+  --border: #ffffff;
+  --border-strong: #ffffff;
+  --hero: #000000;
+  --chip-bg: #101010;
+  --chip-ink: #ffffff;
+  --focus: #ffd500;
+  --shadow-1: none;
+  --shadow-2: none;
+  --panel-line: transparent;
+}
+[data-theme="contrast"] .card, [data-theme="contrast"] .panel { border-width: 2px; }
+[data-theme="contrast"] a { text-decoration: underline; }
