@@ -7,6 +7,17 @@ import axios from 'axios';
  */
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+// Origin that serves media (the API host), derived from the API base URL by
+// stripping the trailing /api/v1. Empty string => same origin (dev proxy).
+const apiOrigin = baseURL.replace(/\/api\/v\d+\/?$/, '');
+
+/** Build an absolute URL for a server-relative media path like "/media/abc.png". */
+export function mediaUrl(path) {
+  if (!path) return path;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${apiOrigin}${path}`;
+}
+
 export const TOKEN_KEY = 'autohub.jwt';
 
 export function getToken() {

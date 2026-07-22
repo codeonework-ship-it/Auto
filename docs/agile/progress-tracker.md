@@ -35,12 +35,12 @@ _Last updated: 2026-07-22_
 | S1 | US-106 | RBAC enforcement (route + method guards) | RBAC | ✅ Done | JWT authorities + `@PreAuthorize`; 403 denials verified |
 | S1 | US-107 | User management (list, assign roles, status) | identity / control-panel | 🔵 In-Progress | Backend endpoints done & verified (roles/status lifecycle); control-panel UI wiring pending |
 | S1 | US-108 | Masters CRUD | adminops / control-panel | 🔵 In-Progress | Generic CRUD for 7 name+active masters done & verified; currencies/cities/make hierarchy + roles/permissions pending |
-| S2 | US-201 | Create car/bike post + rich text | catalog | ⚪ Todo | react-quill, sanitized |
-| S2 | US-202 | Edit / delete post | catalog | ⚪ Todo | |
-| S2 | US-203 | Post list + detail + filters | catalog | ⚪ Todo | Filter by Master attrs |
-| S2 | US-204 | 20-image uploader | media | ⚪ Todo | JPEG/PNG/WEBP, ≤5 MB |
-| S2 | US-205 | Image validation (type/size/resolution) | media | ⚪ Todo | ≥640×480, clear errors |
-| S2 | US-206 | Image gallery component | web-app | ⚪ Todo | Emits `media.image.uploaded` |
+| S2 | US-201 | Create car/bike post + rich text | catalog | ✅ Done | Jsoup-sanitized bodyHtml; publish emits `catalog.post.published`; verified |
+| S2 | US-202 | Edit / delete post | catalog | ✅ Done | Owner/moderator-gated update & delete; verified (PUT 200, DELETE 204→404) |
+| S2 | US-203 | Post list + detail + filters | catalog | 🔵 In-Progress | Public list + kind filter + detail-by-slug (drafts hidden) done; make/model attribute filters pending |
+| S2 | US-204 | 20-image uploader | media | ✅ Done | multipart `files`, 20-cap enforced & verified |
+| S2 | US-205 | Image validation (type/size/resolution) | media | ✅ Done | JPEG/PNG/WEBP, ≤5 MB, ≥640×480; 400s with clear messages verified |
+| S2 | US-206 | Image gallery + web wiring | web-app / media | ✅ Done | Served via `/media/**`; feed cover + detail gallery render; emits `media.image.uploaded` |
 | S3 | US-301 | Add review (rating + tags) | engagement | ⚪ Todo | 1 per user/post |
 | S3 | US-302 | Comment on post (threaded) | engagement | ⚪ Todo | |
 | S3 | US-303 | Edit / delete comment & review | engagement | ⚪ Todo | |
@@ -66,7 +66,7 @@ _Last updated: 2026-07-22_
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 Foundation | 8 | 8 | 0 | 0 | 0 | **100%** |
 | S1 Identity & RBAC | 8 | 3 | 4 | 1 | 0 | ~65% |
-| S2 Catalog | 6 | 0 | 0 | 6 | 0 | 0% |
+| S2 Catalog & Media | 6 | 5 | 1 | 0 | 0 | ~90% |
 | S3 Engagement | 5 | 0 | 0 | 5 | 0 | 0% |
 | S4 Marketplace & KYC | 6 | 0 | 0 | 6 | 0 | 0% |
 | S5 Travel & Community | 5 | 0 | 0 | 5 | 0 | 0% |

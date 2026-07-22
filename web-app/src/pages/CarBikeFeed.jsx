@@ -2,30 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button, Form } from 'react-bootstrap';
 import postsApi from '../api/posts';
+import { mediaUrl } from '../api/client';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
 
-// Placeholder data used until the backend feed endpoint is live.
-const PLACEHOLDER_POSTS = [
-  {
-    id: 1,
-    title: '2023 Ducati Panigale V4 — first 1,000 km review',
-    category: 'BIKE',
-    author: 'rider_max',
-    cover: 'https://placehold.co/640x480?text=Panigale+V4',
-    excerpt: 'Track-focused but surprisingly usable on the street. Here are my impressions…',
-    reviews: 12,
-  },
-  {
-    id: 2,
-    title: 'Long-term with the Mahindra Thar — 20,000 km update',
-    category: 'CAR',
-    author: 'offroad_ann',
-    cover: 'https://placehold.co/640x480?text=Thar',
-    excerpt: 'Reliability, mileage, and what breaks after two monsoons of abuse.',
-    reviews: 8,
-  },
-];
+const PLACEHOLDER_IMG = 'https://placehold.co/640x480?text=AutoHub';
 
 export default function CarBikeFeed() {
   const [posts, setPosts] = useState(null);
@@ -35,8 +16,8 @@ export default function CarBikeFeed() {
     let active = true;
     postsApi
       .list()
-      .then((data) => active && setPosts(Array.isArray(data) ? data : data?.items || []))
-      .catch(() => active && setPosts(PLACEHOLDER_POSTS)); // fall back to placeholders
+      .then((data) => active && setPosts(Array.isArray(data) ? data : []))
+      .catch(() => active && setPosts([]));
     return () => {
       active = false;
     };
@@ -44,8 +25,7 @@ export default function CarBikeFeed() {
 
   if (posts === null) return <Loader label="Loading posts…" />;
 
-  const visible =
-    filter === 'ALL' ? posts : posts.filter((p) => p.category === filter);
+  const visible = filter === 'ALL' ? posts : posts.filter((p) => p.kind === filter);
 
   return (
     <Container className="py-4">
@@ -86,18 +66,20 @@ export default function CarBikeFeed() {
           {visible.map((post) => (
             <Col md={6} lg={4} key={post.id}>
               <Card className="ah-card h-100 border-0 overflow-hidden">
-                <Card.Img variant="top" src={post.cover} alt={post.title} />
+                <Card.Img
+                  variant="top"
+                  src={post.coverUrl ? mediaUrl(post.coverUrl) : PLACEHOLDER_IMG}
+                  alt={post.title}
+                  style={{ aspectRatio: '4 / 3', objectFit: 'cover' }}
+                />
                 <Card.Body className="d-flex flex-column">
                   <div className="mb-2">
-                    <Badge bg={post.category === 'BIKE' ? 'warning' : 'info'}>
-                      {post.category}
-                    </Badge>
+                    <Badge bg={post.kind === 'BIKE' ? 'warning' : 'info'}>{post.kind}</Badge>
                   </div>
-                  <Card.Title className="fs-6 fw-bold">{post.title}</Card.Title>
-                  <Card.Text className="ah-muted small flex-grow-1">{post.excerpt}</Card.Text>
+                  <Card.Title className="fs-6 fw-bold flex-grow-1">{post.title}</Card.Title>
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className="ah-muted small">by {post.author}</span>
-                    <Link to={`/posts/${post.id}`} className="fw-semibold small">
+                    <span className="ah-muted small">{post.imageCount} photo(s)</span>
+                    <Link to={`/posts/${post.slug}`} className="fw-semibold small">
                       Read →
                     </Link>
                   </div>

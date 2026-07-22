@@ -1,67 +1,117 @@
 package com.autohub.catalog.interfaces.web;
 
+import com.autohub.catalog.application.PostService;
+import com.autohub.catalog.infrastructure.persistence.PostEntity;
+import com.autohub.catalog.infrastructure.persistence.PostImageEntity;
+import com.autohub.catalog.interfaces.web.dto.CreatePostRequest;
+import com.autohub.catalog.interfaces.web.dto.PostImageResponse;
+import com.autohub.catalog.interfaces.web.dto.PostResponse;
+import com.autohub.catalog.interfaces.web.dto.PostSummaryResponse;
+import com.autohub.catalog.interfaces.web.dto.UpdatePostRequest;
 import com.autohub.shared.interfaces.web.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Catalog (car/bike posts) web adapter.
- *
- * <p>SCAFFOLD: the read endpoint returns representative sample data and the create endpoint
- * demonstrates permission-gated access ({@code post:create}) and rich-text/relationship shape.
- * The full application + persistence layers for this context are delivered in Sprint&nbsp;2
- * (see docs/agile/sprint-plan.md).
+ * Catalog (car/bike posts) web adapter. Reads of published posts are public; authoring,
+ * publishing and image upload are permission-gated and ownership-checked in the service.
  */
 @RestController
 @RequestMapping("/api/v1/posts")
 public class PostController {
 
-    /** Sample post projection returned to the web/feed. */
-    public record PostSummary(String id, String kind, String title, String slug,
-                              String author, Instant publishedAt) {}
+    private final PostService postService;
 
-    /** Create payload — body is sanitized rich-text HTML; images are attached separately (max 20). */
-    public record CreatePostRequest(
-            @NotBlank @Pattern(regexp = "CAR|BIKE") String kind,
-            @NotBlank String title,
-            String bodyHtml) {}
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
+    // ---- reads ----
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostSummary>>> list() {
-        List<PostSummary> sample = List.of(
-                new PostSummary("11111111-1111-1111-1111-111111111111", "CAR",
-                        "2024 Tesla Model 3 — Long-term review", "tesla-model-3-review",
-                        "superadmin", Instant.parse("2024-05-01T10:00:00Z")),
-                new PostSummary("22222222-2222-2222-2222-222222222222", "BIKE",
-                        "Royal Enfield Himalayan 450 first ride", "re-himalayan-450",
-                        "superadmin", Instant.parse("2024-06-12T08:30:00Z")));
-        return ResponseEntity.ok(ApiResponse.ok(sample));
+    public ApiResponse<List<PostSummaryResponse>> list(@RequestParam(required = false) String kind) {
+        return ApiResponse.ok(postService.listPublished(kind).stream().map(this::toSummary).toList());
     }
+
+    @GetMapping("/mine")
+    public ApiResponse<List<PostSummaryResponse>> mine() {
+        return ApiResponse.ok(postService.listMine().stream().map(this::toSummary).toList());
+    }
+
+    @GetMapping("/{slug}")
+    public ApiResponse<PostResponse> detail(@PathVariable String slug) {
+        PostEntity post = postService.getVisibleBySlug(slug);
+        return ApiResponse.ok(PostResponse.from(post, postService.imagesOf(post.getId())));
+    }
+
+    // ---- writes ----
 
     @PostMapping
     @PreAuthorize("hasAuthority('post:create')")
-    public ResponseEntity<ApiResponse<PostSummary>> create(@Valid @RequestBody CreatePostRequest request) {
-        // SCAFFOLD: echo back a created summary. Real implementation persists via a use case,
-        // sanitizes bodyHtml, and emits catalog.post.published through the Outbox.
-        PostSummary created = new PostSummary(
-                "00000000-0000-0000-0000-000000000000", request.kind(), request.title(),
-                slugify(request.title()), "me", Instant.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
+    public ResponseEntity<ApiResponse<PostResponse>> create(@Valid @RequestBody CreatePostRequest request) {
+        PostEntity post = postService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(PostResponse.from(post, List.of())));
     }
 
-    private static String slugify(String title) {
-        return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('post:create')")
+    public ApiResponse<PostResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdatePostRequest request) {
+        PostEntity post = postService.update(id, request);
+        return ApiResponse.ok(PostResponse.from(post, postService.imagesOf(id)));
+    }
+
+    @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAuthority('post:publish') or hasAuthority('post:create')")
+    public ApiResponse<PostResponse> publish(@PathVariable UUID id) {
+        PostEntity post = postService.publish(id);
+        return ApiResponse.ok(PostResponse.from(post, postService.imagesOf(id)));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('post:create') or hasAuthority('post:moderate')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        postService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ---- images ----
+
+    @PostMapping("/{id}/images")
+    @PreAuthorize("hasAuthority('image:upload')")
+    public ApiResponse<List<PostImageResponse>> uploadImages(@PathVariable UUID id,
+                                                             @RequestParam("files") List<MultipartFile> files) {
+        List<PostImageEntity> images = postService.addImages(id, files);
+        return ApiResponse.ok(images.stream().map(PostImageResponse::from).toList());
+    }
+
+    @DeleteMapping("/{id}/images/{imageId}")
+    @PreAuthorize("hasAuthority('image:upload')")
+    public ResponseEntity<Void> removeImage(@PathVariable UUID id, @PathVariable UUID imageId) {
+        postService.removeImage(id, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ---- mapping ----
+
+    private PostSummaryResponse toSummary(PostEntity post) {
+        List<PostImageEntity> imgs = postService.imagesOf(post.getId());
+        String cover = imgs.isEmpty() ? null : imgs.get(0).getUrl();
+        return PostSummaryResponse.of(post, imgs.size(), cover);
     }
 }

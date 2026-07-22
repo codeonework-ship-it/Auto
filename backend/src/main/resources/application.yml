@@ -32,6 +32,11 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+  servlet:
+    multipart:
+      max-file-size: 5MB          # per image
+      max-request-size: 110MB     # up to 20 images per request
+
 server:
   port: ${SERVER_PORT:8080}
   error:
@@ -67,3 +72,5 @@ autohub:
     allowed-content-types: image/jpeg,image/png,image/webp
     min-width: 640
     min-height: 480
+    storage-dir: ${AUTOHUB_MEDIA_DIR:${java.io.tmpdir}/autohub-media}
+    public-base-path: /media

@@ -20,18 +20,24 @@ export default function CreatePost() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { category: 'CAR' } });
+  } = useForm({ defaultValues: { kind: 'CAR' } });
 
   async function onSubmit(values) {
     setServerError('');
     try {
-      // 1) Create the post with title/category/body.
-      const created = await postsApi.create({ ...values, bodyHtml: body });
+      // 1) Create the draft post (title/kind/sanitized body).
+      const created = await postsApi.create({
+        kind: values.kind,
+        title: values.title,
+        bodyHtml: body,
+      });
       // 2) Upload images to the new post (if any).
       if (images.length > 0 && created?.id) {
         await postsApi.uploadImages(created.id, images);
       }
-      navigate(`/posts/${created?.id ?? ''}`);
+      // 3) Publish so it appears in the public feed.
+      await postsApi.publish(created.id);
+      navigate(`/posts/${created.slug}`);
     } catch (err) {
       setServerError(err?.message || 'Failed to publish post.');
     }
@@ -71,7 +77,7 @@ export default function CreatePost() {
                   <Col md={4}>
                     <Form.Group>
                       <Form.Label>Category</Form.Label>
-                      <Form.Select {...register('category', { required: true })}>
+                      <Form.Select {...register('kind', { required: true })}>
                         <option value="CAR">Car</option>
                         <option value="BIKE">Bike</option>
                       </Form.Select>

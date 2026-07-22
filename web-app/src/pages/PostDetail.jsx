@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Container, Row, Col, Badge, Card, Button, Alert, Form } from 'react-bootstrap';
 import postsApi from '../api/posts';
+import { mediaUrl } from '../api/client';
 import reviewsApi from '../api/reviews';
 import Loader from '../components/common/Loader';
 import { useAuth } from '../context/AuthContext';
 
 // Post detail — shows gallery, body, reviews. Commenting requires sign-up.
 export default function PostDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();
   const { isAuthenticated } = useAuth();
   const [post, setPost] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -17,28 +18,26 @@ export default function PostDetail() {
   useEffect(() => {
     let active = true;
     postsApi
-      .get(id)
+      .get(slug)
       .then((data) => active && setPost(data))
-      .catch(
-        () =>
-          active &&
-          setPost({
-            id,
-            title: 'Sample post',
-            category: 'CAR',
-            author: 'demo_user',
-            bodyHtml: '<p>This is placeholder post content. Connect the backend to load real data.</p>',
-            images: ['https://placehold.co/1280x720?text=AutoHub+Post'],
-          }),
-      );
+      .catch(() => active && setPost(false));
     reviewsApi
-      .listForPost(id)
+      .listForPost(slug)
       .then((data) => active && setReviews(Array.isArray(data) ? data : []))
       .catch(() => active && setReviews([]));
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [slug]);
+
+  if (post === false) {
+    return (
+      <Container className="py-5 text-center">
+        <h3 className="fw-bold">Post not found</h3>
+        <Link to="/feed" className="fw-semibold">← Back to feed</Link>
+      </Container>
+    );
+  }
 
   if (!post) return <Loader label="Loading post…" />;
 
@@ -57,16 +56,20 @@ export default function PostDetail() {
       <Link to="/feed" className="small">← Back to feed</Link>
       <Row className="mt-2 g-4">
         <Col lg={8}>
-          <Badge bg={post.category === 'BIKE' ? 'warning' : 'info'} className="mb-2">
-            {post.category}
+          <Badge bg={post.kind === 'BIKE' ? 'warning' : 'info'} className="mb-2">
+            {post.kind}
           </Badge>
           <h1 className="fw-bold">{post.title}</h1>
-          <p className="ah-muted">by {post.author}</p>
+          {post.publishedAt && (
+            <p className="ah-muted">
+              Published {new Date(post.publishedAt).toLocaleDateString()}
+            </p>
+          )}
 
-          {(post.images || []).map((src, i) => (
+          {(post.images || []).map((img, i) => (
             <img
-              key={i}
-              src={src}
+              key={img.id || i}
+              src={mediaUrl(img.url)}
               alt={`${post.title} ${i + 1}`}
               className="img-fluid rounded mb-3"
             />

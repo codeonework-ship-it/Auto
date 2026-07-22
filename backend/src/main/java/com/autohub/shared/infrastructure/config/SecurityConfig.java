@@ -49,12 +49,16 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/h2-console/**")
                         .permitAll()
-                        // Public reads of published content
+                        // The caller's own posts (any status) require authentication —
+                        // must be listed before the public posts/** read rule.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/mine").authenticated()
+                        // Public reads of published content + served media
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/posts/**",
                                 "/api/v1/marketplace/listings/**",
                                 "/api/v1/travel/**",
-                                "/api/v1/masters/**")
+                                "/api/v1/masters/**",
+                                "/media/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
